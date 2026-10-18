@@ -17,10 +17,11 @@ Qué hace cada vez que se ejecuta (es seguro correrlo varias veces):
      mini-API para leer/escribir los datos (productos, ventas, stats,
      configuración) como archivos de texto plano (JSON) en
      ~/CajaNirvana/datos/ — nada se guarda en el navegador.
-  5. En segundo plano, revisa (máximo 1 vez al día, con tiempo límite
-     corto) si hay una versión más nueva de caja.html en GitHub, y si la
-     hay la descarga para la PRÓXIMA vez que se abra el programa. Nunca
-     bloquea el arranque ni reemplaza el archivo mientras está en uso.
+  5. En segundo plano, revisa (máximo 1 vez por hora, con tiempo límite
+     corto) si el caja.html de GitHub (DogeAAPL/Caja-Registradora, rama
+     main) es distinto del instalado, y si lo es lo descarga. La ventana
+     abierta sigue con la versión que ya cargó y muestra un aviso para
+     recargar. Nunca bloquea el arranque.
      Solo actualiza caja.html — el propio .exe/instalador nunca se
      autoactualiza (eso siempre requiere generar un instalador nuevo).
 
@@ -59,15 +60,20 @@ PORT     = 7331
 # ---------------------------------------------------------------------------
 # Auto-actualización de caja.html desde GitHub
 # ---------------------------------------------------------------------------
-# Cámbialos por los tuyos. El repositorio debe ser PÚBLICO (no lleva ninguna
-# credencial ni dato sensible — tus ventas/productos nunca salen de este
-# computador, viven solo en la carpeta datos/, que nunca se sube a GitHub).
-GITHUB_USER   = "TU_USUARIO_DE_GITHUB"
-GITHUB_REPO   = "TU_REPOSITORIO"
+# El repositorio es PÚBLICO y no lleva ninguna credencial ni dato sensible —
+# tus ventas/productos nunca salen de este computador, viven solo en la
+# carpeta datos/, que nunca se sube a GitHub (.gitignore).
+#
+# Regla: el caja.html que esté en la rama main de GitHub es el que usa la
+# caja. Al abrir el programa (máximo una vez por hora) se compara con el
+# instalado y, si es distinto, se descarga y queda listo para la próxima vez
+# que se recargue la ventana de la caja.
+GITHUB_USER   = "DogeAAPL"
+GITHUB_REPO   = "Caja-Registradora"
 GITHUB_BRANCH = "main"
 
-UPDATE_CHECK_TIMEOUT      = 3   # segundos máximo esperando respuesta de GitHub
-UPDATE_CHECK_EVERY_HOURS  = 24  # no revisar más de una vez al día
+UPDATE_CHECK_TIMEOUT      = 5   # segundos máximo esperando respuesta de GitHub
+UPDATE_CHECK_EVERY_HOURS  = 1   # no revisar más de una vez por hora
 
 BACKUP_KEEP_DAYS = 30  # días de copias de seguridad de datos/ que se conservan
 
@@ -88,6 +94,9 @@ INSTALL_DIR = Path.home() / APP_NAME
 INSTALLED_EXE_NAME = "CajaNirvana.exe" if sys.platform == "win32" else "CajaNirvana"
 DATA_DIR    = INSTALL_DIR / "datos"
 BACKUP_DIR  = DATA_DIR / "respaldos"
+# Estado de la auto-actualización. Archivo aparte de config.json para que la
+# app web (que reescribe config.json completo) nunca lo pise.
+UPDATE_STATE = DATA_DIR / "actualizacion.json"
 APP_HTML    = INSTALL_DIR / "caja.html"
 APP_LOGO    = INSTALL_DIR / "LogoNirvana-Cuadrado.png"
 APP_LOGO_LAUNCHER = INSTALL_DIR / "LogoNirvana-Launcher.png"
@@ -234,65 +243,110 @@ def backup_today() -> None:
         pass
 
 
+def _git_blob_sha(data: bytes) -> str:
+    """El mismo identificador que GitHub calcula para cada archivo (SHA-1
+    de "blob <tamaño>\\0<contenido>"). Permite saber si el caja.html
+    instalado es idéntico al de GitHub sin descargarlo."""
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def _read_update_state() -> dict:
+    try:
+        if UPDATE_STATE.exists():
+            return json.loads(UPDATE_STATE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {}
+
+
+def _write_update_state(state: dict) -> None:
+    try:
+        with _data_lock:
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = UPDATE_STATE.with_suffix(".tmp")
+            tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(UPDATE_STATE)
+    except Exception:
+        pass
+
+
+# Texto corto que muestra el panel de control sobre la última revisión
+update_status = {"texto": ""}
+
+
+def _html_valido(data: bytes) -> bool:
+    """Verificación de cordura antes de reemplazar caja.html: tiene que ser
+    la página de la caja (y no, por ejemplo, una página de error)."""
+    low = data.lower()
+    return (len(data) > 5000 and b"<html" in low and b"/api/data/" in data
+            and b"initApp" in data and low.rstrip().endswith(b"</html>"))
+
+
 def check_for_updates() -> None:
-    """Revisa (en un hilo aparte, nunca bloquea la interfaz) si hay una
-    versión más nueva de caja.html en GitHub. Si la hay, la descarga y la
-    deja lista para la PRÓXIMA vez que se abra el programa — nunca
-    reemplaza el archivo mientras la app está en uso. Cualquier problema
-    (sin internet, GitHub caído, repo sin configurar, etc.) se ignora en
-    silencio: la app sigue funcionando normalmente con lo que ya tiene.
-    Solo toca caja.html — nunca el .exe/instalador."""
+    """Revisa (en un hilo aparte, nunca bloquea la interfaz) si el caja.html
+    de GitHub es distinto del instalado. Si lo es, verifica que sea la
+    página de la caja y lo instala (dejando el anterior como caja.html.bak).
+    La ventana de la caja abierta sigue funcionando con la versión que ya
+    cargó; la nueva se usa al recargarla. Cualquier problema (sin internet,
+    GitHub caído, etc.) se ignora en silencio. Solo toca caja.html — nunca
+    el .exe/instalador ni la carpeta datos/."""
     if GITHUB_USER == "TU_USUARIO_DE_GITHUB" or GITHUB_REPO == "TU_REPOSITORIO":
         return  # todavía no configurado
 
-    cfg = _read_config()
-    last_check = cfg.get("lastUpdateCheck", 0)
-    if time.time() - last_check < UPDATE_CHECK_EVERY_HOURS * 3600:
+    state = _read_update_state()
+    if time.time() - state.get("ultimaRevision", 0) < UPDATE_CHECK_EVERY_HOURS * 3600:
         return  # ya se revisó hace poco, no molestar a GitHub de más
 
-    api_url = (f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
-               f"/contents/caja.html?ref={GITHUB_BRANCH}")
-    try:
-        req = urllib.request.Request(
-            api_url, headers={"Accept": "application/vnd.github+json", "User-Agent": "CajaNirvana"}
-        )
-        with urllib.request.urlopen(req, timeout=UPDATE_CHECK_TIMEOUT) as resp:
-            info = json.loads(resp.read().decode("utf-8"))
-        remote_sha = info.get("sha")
-    except Exception:
-        return  # sin internet, repo no encontrado, timeout, etc.
-
-    cfg["lastUpdateCheck"] = time.time()
-
-    if not remote_sha or remote_sha == cfg.get("lastCajaHtmlSha"):
-        _write_config(cfg)  # está al día; igual guardamos la fecha de revisión
-        return
-
+    # Se descarga directamente el archivo (≈120 KB). No se usa la API de
+    # GitHub para no depender de su límite de consultas.
     raw_url = (f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}"
                f"/{GITHUB_BRANCH}/caja.html")
     try:
-        req2 = urllib.request.Request(raw_url, headers={"User-Agent": "CajaNirvana"})
-        with urllib.request.urlopen(req2, timeout=UPDATE_CHECK_TIMEOUT) as resp2:
-            nuevo_html = resp2.read()
-        # Verificación mínima de cordura antes de reemplazar nada
-        if len(nuevo_html) < 500 or b"<html" not in nuevo_html.lower():
-            _write_config(cfg)
-            return
+        req = urllib.request.Request(raw_url, headers={"User-Agent": "CajaNirvana",
+                                                       "Cache-Control": "no-cache"})
+        with urllib.request.urlopen(req, timeout=UPDATE_CHECK_TIMEOUT * 3) as resp:
+            nuevo_html = resp.read()
     except Exception:
-        _write_config(cfg)
+        update_status["texto"] = "Sin conexión con GitHub (se reintenta al abrir)"
+        return  # sin internet, repo no encontrado, timeout, etc. → se reintenta luego
+
+    remote_sha = _git_blob_sha(nuevo_html)
+    try:
+        local_sha = _git_blob_sha(APP_HTML.read_bytes()) if APP_HTML.exists() else ""
+    except Exception:
+        local_sha = ""
+
+    if remote_sha == local_sha:
+        state["ultimaRevision"] = time.time()
+        state["version"] = remote_sha[:7]
+        _write_update_state(state)
+        update_status["texto"] = f"Caja al día (versión {remote_sha[:7]})"
         return
+
+    # Tiene que ser la página de la caja (no una página de error ni un
+    # archivo a medio subir).
+    if not _html_valido(nuevo_html):
+        update_status["texto"] = "El caja.html de GitHub no parece válido; no se instaló"
+        return  # se reintenta la próxima vez
 
     try:
         if APP_HTML.exists():
+            try:
+                os.chmod(APP_HTML, 0o644)
+            except Exception:
+                pass
             shutil.copy2(APP_HTML, INSTALL_DIR / "caja.html.bak")  # respaldo por si acaso
         pendiente = INSTALL_DIR / "caja.html.nuevo"
         pendiente.write_bytes(nuevo_html)
         pendiente.replace(APP_HTML)  # reemplazo atómico
-        cfg["lastCajaHtmlSha"] = remote_sha
     except Exception:
-        pass
+        return
 
-    _write_config(cfg)
+    state["ultimaRevision"] = time.time()
+    state["version"] = remote_sha[:7]
+    state["actualizadoEl"] = datetime.datetime.now().isoformat(timespec="seconds")
+    _write_update_state(state)
+    update_status["texto"] = f"Caja actualizada desde GitHub (versión {remote_sha[:7]})"
 
 
 def desktop_dir() -> Path:
@@ -415,7 +469,16 @@ ALLOWED_ORIGINS = {"http://" + h for h in ALLOWED_HOSTS}
 
 # Solo la ventana de la caja abierta más recientemente puede guardar. Así
 # dos ventanas abiertas a la vez no se pisan los datos entre sí.
-_session = {"activa": None}
+_session = {"activa": None, "html_sha": None}
+
+
+def _html_sha_actual():
+    """Huella del caja.html instalado (para avisar a la ventana abierta de
+    que se descargó una versión nueva)."""
+    try:
+        return _sha256(APP_HTML)
+    except Exception:
+        return None
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -460,6 +523,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/session":
             token = os.urandom(12).hex()
             _session["activa"] = token
+            _session["html_sha"] = _html_sha_actual()
             self._json(200, {"sesion": token})
             return
 
@@ -467,7 +531,10 @@ class Handler(BaseHTTPRequestHandler):
         # abierto y si ella sigue siendo la ventana activa.
         if path == "/api/ping":
             token = self.headers.get("X-Caja-Sesion")
-            self._json(200, {"ok": True, "activa": bool(token) and token == _session["activa"]})
+            nueva = bool(_session.get("html_sha")) and _html_sha_actual() != _session.get("html_sha")
+            self._json(200, {"ok": True,
+                             "activa": bool(token) and token == _session["activa"],
+                             "nuevaVersion": nueva})
             return
 
         if path.startswith("/api/data/"):
@@ -661,7 +728,7 @@ class App:
         self.server = None
 
         root.title("Caja Nirvana")
-        root.geometry("380x430")
+        root.geometry("380x450")
         root.resizable(False, False)
         root.configure(bg=BG)
         root.protocol("WM_DELETE_WINDOW", self.cerrar_app)
@@ -782,7 +849,11 @@ class App:
 
         tk.Label(self.container, text="Datos guardados en:", font=("Segoe UI", 8), fg=TEXT3, bg=BG).pack()
         tk.Label(self.container, text=str(DATA_DIR), font=("Segoe UI", 8), fg=TEXT3, bg=BG,
-                 wraplength=320, justify="center").pack(pady=(0, 20))
+                 wraplength=320, justify="center").pack(pady=(0, 6))
+        self.update_lbl = tk.Label(self.container, text=update_status["texto"], font=("Segoe UI", 8),
+                                   fg=TEXT2, bg=BG, wraplength=320, justify="center")
+        self.update_lbl.pack(pady=(0, 12))
+        self._refrescar_estado_update()
 
         tk.Button(self.container, text="Abrir de nuevo", command=self.abrir_de_nuevo,
                   bg=BG2, fg="white", font=FONT_B, relief="flat", padx=14, pady=7,
@@ -790,6 +861,15 @@ class App:
         tk.Button(self.container, text="Cerrar aplicación", command=self.cerrar_app,
                   bg="#2a1c1c", fg=RED, font=FONT_B, relief="flat", padx=14, pady=7,
                   cursor="hand2").pack()
+
+    def _refrescar_estado_update(self):
+        # La revisión corre en otro hilo; tkinter solo se toca desde aquí.
+        try:
+            if self.update_lbl.winfo_exists():
+                self.update_lbl.config(text=update_status["texto"])
+                self.root.after(2000, self._refrescar_estado_update)
+        except Exception:
+            pass
 
     def abrir_de_nuevo(self):
         threading.Thread(target=open_browser, daemon=True).start()

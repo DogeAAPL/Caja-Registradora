@@ -1,0 +1,14 @@
+# Datos del negocio: NUNCA se suben (ventas, productos, WhatsApp…)
+datos/
+respaldo-antes-de-correccion/
+
+# Archivos temporales de compilación
+build/
+__pycache__/
+*.pyc
+*.spec.bak
+
+# Copias locales que crea la app
+caja.html.bak
+caja.html.nuevo
+.caja_html_empacado

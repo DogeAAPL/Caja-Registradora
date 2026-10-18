@@ -61,6 +61,7 @@ CajaNirvana/
     ├── ventas.json          ← historial completo de ventas
     ├── stats.json           ← totales del día / base de caja
     ├── config.json          ← número de WhatsApp guardado, etc.
+    ├── actualizacion.json   ← última revisión de GitHub (lo maneja el programa)
     └── respaldos/
         └── AAAA-MM-DD/      ← copia automática de todo lo anterior, una por día
 ```
@@ -77,34 +78,33 @@ alguna vez necesitas revisarlos a mano (son JSON: texto con `{ }` y `[ ]`).
 Además, desde "Historial" puedes seguir exportando un CSV normal para abrir
 en Excel cuando quieras.
 
-## 🔄 Actualización automática de la app (opcional)
+## 🔄 Actualización automática de la caja (activada)
 
-El programa puede revisar solo, una vez al día, si hay una versión más
-nueva de `caja.html` en un repositorio de GitHub — y si la hay, la
-descarga para que quede lista la próxima vez que abras la app. **Solo
-actualiza `caja.html`**, nunca el propio programa/instalador; para eso
-siempre hay que generar un instalador nuevo como hasta ahora.
+El programa está conectado a este repositorio (**DogeAAPL/Caja-Registradora**,
+rama `main`). Cada vez que se abre (como máximo una vez por hora) descarga el
+`caja.html` de GitHub y, si es distinto del instalado, lo instala solo:
 
-Para activarlo, edita `iniciar.py` (antes de compilar) y cambia estas
-tres líneas cerca del inicio del archivo:
+- Deja el anterior como `caja.html.bak` por si hay que volver atrás.
+- La ventana de la caja que ya está abierta sigue funcionando y muestra una
+  franja azul **"Hay una versión nueva de la caja"** con un botón para
+  recargar (avisa si hay tickets sin cobrar).
+- El panelito del programa muestra si la caja está al día o se actualizó.
+- Antes de instalar, verifica que el archivo descargado sea de verdad la página
+  de la caja (no una página de error ni un archivo a medio subir).
 
-```python
-GITHUB_USER   = "TU_USUARIO_DE_GITHUB"
-GITHUB_REPO   = "TU_REPOSITORIO"
-GITHUB_BRANCH = "main"
-```
+**Para publicar un cambio:** edita `caja.html` y súbelo a la rama `main`. Las
+cajas lo toman la próxima vez que se abra el programa.
 
-Sube todo el proyecto (código completo, no solo `caja.html`) a un
-repositorio de GitHub **público** — no necesita llevar ninguna
-credencial ni dato del negocio, tus ventas y productos nunca salen de
-este computador. No hace falta hacer nada especial cada vez que subas un
-cambio a `caja.html`: el programa detecta automáticamente que hay una
-versión distinta comparando el identificador que GitHub ya calcula solo
-por cada archivo.
+> ⚠️ Lo que esté en `main` es lo que usan las cajas. No subas a `main` un
+> `caja.html` sin probar.
 
-Si no configuras esto (dejas los valores de ejemplo tal cual), la app
-simplemente nunca revisa nada — funciona exactamente igual que antes,
-sin ningún cambio de comportamiento.
+**Solo se actualiza `caja.html`.** Si cambias `iniciar.py` hay que generar un
+instalador nuevo (`build_windows.bat`) y reemplazar `CajaNirvana.exe`.
+
+El repositorio debe seguir siendo **público** (no lleva ninguna credencial ni
+dato del negocio: la carpeta `datos/` está en `.gitignore` y nunca se sube).
+Para desactivar la actualización, vuelve a poner `GITHUB_USER =
+"TU_USUARIO_DE_GITHUB"` en `iniciar.py` y compila de nuevo.
 
 ## 🛡️ Protección de datos (versión 2)
 

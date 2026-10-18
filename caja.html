@@ -162,6 +162,7 @@
 </head>
 <body>
 <div id="boot-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;color:var(--text2);font-family:var(--mono);font-size:13px;letter-spacing:1px">CARGANDO DATOS…</div>
+<div id="update-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:#1f4e8c;color:#fff;font-family:var(--sans,system-ui);font-size:13px;padding:8px 16px;text-align:center">🔄 Hay una versión nueva de la caja. Recarga cuando no estés cobrando. <button id="update-banner-btn" style="margin-left:10px;background:#fff;color:#1f4e8c;border:none;border-radius:6px;padding:3px 12px;font-weight:700;cursor:pointer">Recargar ahora</button></div>
 <div id="save-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:1000;background:#b3261e;color:#fff;font-family:var(--sans,system-ui);font-size:14px;font-weight:600;padding:10px 16px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.4)"><span id="save-banner-text"></span> <button id="save-banner-btn" style="margin-left:12px;background:#fff;color:#b3261e;border:none;border-radius:6px;padding:4px 12px;font-weight:700;cursor:pointer">Recargar</button></div>
 <div id="app">
 
@@ -610,6 +611,7 @@ async function heartbeat() {
     const r = await fetch('/api/ping', {cache:'no-store', headers:{'X-Caja-Sesion': sesion || ''}});
     const info = await r.json();
     if (!info.activa) { bloquearVentana(); return; }
+    if (info.nuevaVersion) el('update-banner').style.display = 'block';
     if (!guardadoOK && el('save-banner-text').textContent.indexOf('CONEXIÓN') >= 0) {
       // Volvió la conexión: reintentar guardar todo lo que hay en memoria
       guardadoOK = true; ocultarBanner();
@@ -1125,6 +1127,12 @@ function cobrar() {
 }
 el('cobrar-btn').addEventListener('click', cobrar);
 el('save-banner-btn').addEventListener('click', () => location.reload());
+el('update-banner-btn').addEventListener('click', () => {
+  // No recargar con un ticket a medio cobrar (se perdería lo que no se ha cobrado)
+  const pendientes = colas.reduce((a, c) => a + c.items.length, 0);
+  if (pendientes && !confirm('Hay productos en tickets sin cobrar y se perderán al recargar. ¿Recargar de todas formas?')) return;
+  location.reload();
+});
 el('btn-nueva-venta').addEventListener('click', () => {
   el('success-modal').style.display = 'none';
   renderGrid(); renderCats();
