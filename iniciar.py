@@ -23,6 +23,18 @@ Qué hace cada vez que se ejecuta (es seguro correrlo varias veces):
      bloquea el arranque ni reemplaza el archivo mientras está en uso.
      Solo actualiza caja.html — el propio .exe/instalador nunca se
      autoactualiza (eso siempre requiere generar un instalador nuevo).
+
+Versión 2 (correcciones de seguridad de datos):
+  - Copia de seguridad diaria automática de datos/ en datos/respaldos/
+    (se conservan los últimos 30 días).
+  - Si un archivo de datos está dañado, el servidor responde con error en
+    vez de "vacío", y la app NO sobrescribe nada.
+  - Solo una ventana de la caja puede guardar a la vez (la última abierta);
+    las demás quedan bloqueadas con un aviso.
+  - No se aceptan escrituras desde otras páginas web, y no se puede
+    reemplazar ventas.json por una lista mucho más corta por error.
+  - caja.html instalado ya no se pisa en cada arranque: solo cuando este
+    .exe trae una versión distinta a la que se instaló la última vez.
 """
 import os
 import sys
@@ -32,6 +44,8 @@ import subprocess
 import webbrowser
 import threading
 import time
+import hashlib
+import datetime
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -55,6 +69,8 @@ GITHUB_BRANCH = "main"
 UPDATE_CHECK_TIMEOUT      = 3   # segundos máximo esperando respuesta de GitHub
 UPDATE_CHECK_EVERY_HOURS  = 24  # no revisar más de una vez al día
 
+BACKUP_KEEP_DAYS = 30  # días de copias de seguridad de datos/ que se conservan
+
 # ---------------------------------------------------------------------------
 # Rutas
 # ---------------------------------------------------------------------------
@@ -71,13 +87,22 @@ INSTALL_DIR = Path.home() / APP_NAME
 # importar cómo se llame el instalador que el usuario descargó/compiló).
 INSTALLED_EXE_NAME = "CajaNirvana.exe" if sys.platform == "win32" else "CajaNirvana"
 DATA_DIR    = INSTALL_DIR / "datos"
+BACKUP_DIR  = DATA_DIR / "respaldos"
 APP_HTML    = INSTALL_DIR / "caja.html"
 APP_LOGO    = INSTALL_DIR / "LogoNirvana-Cuadrado.png"
 APP_LOGO_LAUNCHER = INSTALL_DIR / "LogoNirvana-Launcher.png"
 APP_ICO     = INSTALL_DIR / "LogoNirvana.ico"          # variante con chip: .exe / acceso directo
 FAVICON_ICO = INSTALL_DIR / "favicon.ico"               # variante plana: favicon del navegador
+# Huella del caja.html que trajo el último .exe instalado (ver ensure_installed)
+HTML_VERSION_MARK = INSTALL_DIR / ".caja_html_empacado"
 
 ALLOWED_KEYS = {"productos", "ventas", "stats", "config"}
+# Tipo esperado de cada archivo (para no guardar basura por error)
+KEY_TYPES = {"productos": list, "ventas": list, "stats": dict, "config": dict}
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -97,16 +122,40 @@ def ensure_installed():
     src_logo_launcher = BUNDLE_DIR / "LogoNirvana-Launcher.png"
     src_ico  = BUNDLE_DIR / "LogoNirvana.ico"
     src_favicon = BUNDLE_DIR / "favicon.ico"
+
+    # caja.html: solo se copia si no existe, o si este .exe trae una versión
+    # DISTINTA a la que se instaló la última vez. Así no se pierden cambios
+    # hechos a mano ni actualizaciones descargadas de GitHub.
     if src_html.exists():
-        shutil.copy2(src_html, APP_HTML)
-    if src_logo.exists():
-        shutil.copy2(src_logo, APP_LOGO)
-    if src_logo_launcher.exists():
-        shutil.copy2(src_logo_launcher, APP_LOGO_LAUNCHER)
-    if src_ico.exists():
-        shutil.copy2(src_ico, APP_ICO)
-    if src_favicon.exists():
-        shutil.copy2(src_favicon, FAVICON_ICO)
+        bundled_sha = _sha256(src_html)
+        try:
+            last_sha = HTML_VERSION_MARK.read_text(encoding="utf-8").strip()
+        except Exception:
+            last_sha = ""
+        if not APP_HTML.exists() or bundled_sha != last_sha:
+            if APP_HTML.exists():
+                try:
+                    os.chmod(APP_HTML, 0o644)  # por si quedó de solo lectura
+                except Exception:
+                    pass
+                if _sha256(APP_HTML) != bundled_sha:
+                    try:
+                        shutil.copy2(APP_HTML, INSTALL_DIR / "caja.html.bak")
+                    except Exception:
+                        pass
+            shutil.copy2(src_html, APP_HTML)
+            try:
+                HTML_VERSION_MARK.write_text(bundled_sha, encoding="utf-8")
+            except Exception:
+                pass
+
+    for src, dst in ((src_logo, APP_LOGO), (src_logo_launcher, APP_LOGO_LAUNCHER),
+                     (src_ico, APP_ICO), (src_favicon, FAVICON_ICO)):
+        if src.exists():
+            try:
+                shutil.copy2(src, dst)
+            except Exception:
+                pass  # p. ej. archivo bloqueado; no es crítico
 
     first_install = not was_installed_before
 
@@ -137,14 +186,50 @@ def _read_config() -> dict:
     return {}
 
 
+# Un solo escritor a la vez sobre datos/ (servidor y revisión de updates)
+_data_lock = threading.Lock()
+
+
 def _write_config(cfg: dict) -> None:
     """Escritura atómica de config.json, preservando lo que ya había ahí
     (por ejemplo, el número de WhatsApp que guarda la propia app web)."""
     try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        tmp = DATA_DIR / "config.tmp"
-        tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
-        tmp.replace(DATA_DIR / "config.json")
+        with _data_lock:
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = DATA_DIR / "config.tmp"
+            tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(DATA_DIR / "config.json")
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Copias de seguridad
+# ---------------------------------------------------------------------------
+def backup_today() -> None:
+    """Copia los JSON de datos/ a datos/respaldos/AAAA-MM-DD/ una vez al día
+    (la primera vez que se llama ese día). Conserva los últimos
+    BACKUP_KEEP_DAYS días. Nunca lanza excepción."""
+    try:
+        today = datetime.date.today().isoformat()
+        dest = BACKUP_DIR / today
+        if dest.exists():
+            return
+        files = [DATA_DIR / (k + ".json") for k in sorted(ALLOWED_KEYS)]
+        files = [f for f in files if f.exists()]
+        if not files:
+            return
+        tmp = BACKUP_DIR / (today + ".tmp")
+        if tmp.exists():
+            shutil.rmtree(tmp, ignore_errors=True)
+        tmp.mkdir(parents=True, exist_ok=True)
+        for f in files:
+            shutil.copy2(f, tmp / f.name)
+        tmp.rename(dest)  # la carpeta del día aparece completa o no aparece
+        dias = sorted(p for p in BACKUP_DIR.iterdir()
+                      if p.is_dir() and len(p.name) == 10 and p.name[4] == "-")
+        for viejo in dias[:-BACKUP_KEEP_DAYS]:
+            shutil.rmtree(viejo, ignore_errors=True)
     except Exception:
         pass
 
@@ -249,6 +334,11 @@ def desktop_dir() -> Path:
     return Path.home() / "Desktop"
 
 
+def _ps_quote(s) -> str:
+    """Dentro de comillas simples de PowerShell, una ' se escribe ''."""
+    return str(s).replace("'", "''")
+
+
 def create_shortcut(exe_path: Path) -> None:
     """Crea el acceso directo del Escritorio. Lanza una excepción si algo
     falla (la interfaz gráfica decide cómo mostrarlo); no imprime nada,
@@ -274,7 +364,8 @@ def create_shortcut(exe_path: Path) -> None:
             "$s.WorkingDirectory = '{workdir}'; "
             "$s.IconLocation = '{icon}'; "
             "$s.Save()"
-        ).format(lnk=str(lnk), target=str(exe_path), workdir=str(INSTALL_DIR), icon=str(icon))
+        ).format(lnk=_ps_quote(lnk), target=_ps_quote(exe_path),
+                 workdir=_ps_quote(INSTALL_DIR), icon=_ps_quote(icon))
         flags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
         subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd],
                         check=True, creationflags=flags)
@@ -317,6 +408,16 @@ STATIC_FILES = {
 MIME = {".html": "text/html; charset=utf-8", ".png": "image/png", ".ico": "image/x-icon"}
 
 
+# Solo se atienden peticiones dirigidas a este servidor (evita "DNS
+# rebinding") y solo se aceptan escrituras hechas desde la propia caja.
+ALLOWED_HOSTS   = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"}
+ALLOWED_ORIGINS = {"http://" + h for h in ALLOWED_HOSTS}
+
+# Solo la ventana de la caja abierta más recientemente puede guardar. Así
+# dos ventanas abiertas a la vez no se pisan los datos entre sí.
+_session = {"activa": None}
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass  # silenciar logs de consola
@@ -327,7 +428,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Expires", "0")
 
     def _json(self, code, payload):
-        body = json.dumps(payload).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
@@ -335,23 +436,66 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _host_ok(self) -> bool:
+        return self.headers.get("Host", "") in ALLOWED_HOSTS
+
+    def _same_origin_write(self) -> bool:
+        # Un fetch() de la propia caja siempre manda Origin. Exigir además
+        # application/json obliga a cualquier otra página a pasar por CORS,
+        # que este servidor nunca autoriza.
+        if self.headers.get("Origin") not in ALLOWED_ORIGINS:
+            return False
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        return ctype == "application/json"
+
     def do_GET(self):
-        if self.path.startswith("/api/data/"):
-            key = self.path.split("/api/data/", 1)[1]
+        if not self._host_ok():
+            self.send_response(403)
+            self.end_headers()
+            return
+        path = self.path.split("?", 1)[0]
+
+        # Cada ventana de la caja pide un token al arrancar; la última que
+        # lo pide queda como la única que puede guardar.
+        if path == "/api/session":
+            token = os.urandom(12).hex()
+            _session["activa"] = token
+            self._json(200, {"sesion": token})
+            return
+
+        # La caja consulta esto cada 10 s para saber si el programa sigue
+        # abierto y si ella sigue siendo la ventana activa.
+        if path == "/api/ping":
+            token = self.headers.get("X-Caja-Sesion")
+            self._json(200, {"ok": True, "activa": bool(token) and token == _session["activa"]})
+            return
+
+        if path.startswith("/api/data/"):
+            key = path.split("/api/data/", 1)[1]
             if key not in ALLOWED_KEYS:
                 self._json(404, {"error": "clave no válida"})
                 return
             f = DATA_DIR / f"{key}.json"
-            data = None
-            if f.exists():
+            if not f.exists():
+                self._json(200, None)  # primer arranque: todavía no hay datos
+                return
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+            except Exception:
+                # Archivo dañado: NO se responde "vacío" (la app lo
+                # sobrescribiría y se perdería todo). Se deja una copia para
+                # poder revisarlo y se avisa con un error.
                 try:
-                    data = json.loads(f.read_text(encoding="utf-8"))
+                    copia = DATA_DIR / f"{key}.DANADO-{datetime.date.today().isoformat()}.json"
+                    if not copia.exists():
+                        shutil.copy2(f, copia)
                 except Exception:
-                    data = None
+                    pass
+                self._json(500, {"error": f"El archivo {f.name} está dañado y no se pudo leer."})
+                return
             self._json(200, data)
             return
 
-        path  = self.path.split("?", 1)[0]
         fname = STATIC_FILES.get(path)
         if fname:
             fpath = INSTALL_DIR / fname
@@ -359,38 +503,77 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
                 return
+            body = fpath.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", MIME.get(fpath.suffix, "application/octet-stream"))
+            self.send_header("Content-Length", str(len(body)))
             self._nocache()
             self.end_headers()
-            self.wfile.write(fpath.read_bytes())
+            self.wfile.write(body)
             return
 
         self.send_response(404)
         self.end_headers()
 
     def do_POST(self):
-        if self.path.startswith("/api/data/"):
-            key = self.path.split("/api/data/", 1)[1]
-            if key not in ALLOWED_KEYS:
-                self._json(404, {"error": "clave no válida"})
-                return
-            length = int(self.headers.get("Content-Length", 0) or 0)
-            raw = self.rfile.read(length) if length else b"null"
-            try:
-                value = json.loads(raw)
-            except Exception:
-                self._json(400, {"error": "JSON inválido"})
-                return
-            f   = DATA_DIR / f"{key}.json"
-            tmp = f.with_suffix(".tmp")
-            tmp.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
-            tmp.replace(f)  # escritura atómica: evita archivos a medio escribir
-            self._json(200, {"ok": True})
+        if not self._host_ok() or not self._same_origin_write():
+            self._json(403, {"error": "origen no permitido"})
+            return
+        path = self.path.split("?", 1)[0]
+        if not path.startswith("/api/data/"):
+            self.send_response(404)
+            self.end_headers()
+            return
+        key = path.split("/api/data/", 1)[1]
+        if key not in ALLOWED_KEYS:
+            self._json(404, {"error": "clave no válida"})
             return
 
-        self.send_response(404)
-        self.end_headers()
+        token = self.headers.get("X-Caja-Sesion")
+        if not token or token != _session["activa"]:
+            self._json(409, {"error": "sesion",
+                             "detalle": "La caja se abrió en otra ventana. Esta ventana ya no puede guardar."})
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            raw = self.rfile.read(length) if length else b"null"
+            value = json.loads(raw)
+        except Exception:
+            self._json(400, {"error": "JSON inválido"})
+            return
+
+        if not isinstance(value, KEY_TYPES[key]):
+            self._json(400, {"error": f"Formato inválido para {key}"})
+            return
+
+        f = DATA_DIR / f"{key}.json"
+        with _data_lock:
+            # Protección: ventas.json no se puede reemplazar por una lista
+            # mucho más corta (desde la app solo se borra de a una venta),
+            # salvo en una importación explícita.
+            if key == "ventas" and f.exists() and self.headers.get("X-Caja-Reemplazo") != "1":
+                try:
+                    actuales = json.loads(f.read_text(encoding="utf-8"))
+                except Exception:
+                    self._json(409, {"error": "ventas.json está dañado; no se sobrescribe."})
+                    return
+                if isinstance(actuales, list) and len(value) < len(actuales) - 1:
+                    self._json(409, {"error": "proteccion",
+                                     "detalle": f"Se intentó borrar {len(actuales) - len(value)} "
+                                                "ventas de golpe; se bloqueó por seguridad."})
+                    return
+
+            backup_today()  # primera escritura del día → copia de seguridad
+            try:
+                DATA_DIR.mkdir(parents=True, exist_ok=True)
+                tmp = f.with_suffix(".tmp")
+                tmp.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
+                tmp.replace(f)  # escritura atómica: evita archivos a medio escribir
+            except Exception as e:
+                self._json(500, {"error": f"No se pudo escribir: {e}"})
+                return
+        self._json(200, {"ok": True})
 
 
 def try_start_server():
@@ -500,6 +683,9 @@ class App:
 
         self.container = tk.Frame(root, bg=BG)
         self.container.pack(expand=True, fill="both", padx=26, pady=26)
+
+        # Copia de seguridad del día de datos/ (en segundo plano)
+        threading.Thread(target=backup_today, daemon=True).start()
 
         # Revisión de actualizaciones de caja.html en segundo plano: nunca
         # bloquea la interfaz, y si falla (sin internet, etc.) no se nota.

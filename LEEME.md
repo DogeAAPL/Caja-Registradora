@@ -11,7 +11,7 @@ computador de la caja, tienes que generar el ejecutable de un solo archivo
 
 ### Windows
 Doble clic en `build_windows.bat`. Tarda uno o dos minutos. Al terminar, queda
-`dist\CajaNirvana.exe` — ese es tu instalador de un solo archivo.
+`dist\CajaNirvana_Instalador.exe` — ese es tu instalador de un solo archivo.
 
 ### Linux
 ```bash
@@ -60,8 +60,15 @@ CajaNirvana/
     ├── productos.json      ← tu catálogo
     ├── ventas.json          ← historial completo de ventas
     ├── stats.json           ← totales del día / base de caja
-    └── config.json          ← número de WhatsApp guardado, etc.
+    ├── config.json          ← número de WhatsApp guardado, etc.
+    └── respaldos/
+        └── AAAA-MM-DD/      ← copia automática de todo lo anterior, una por día
 ```
+
+**Copias automáticas:** la primera vez que la caja guarda algo cada día, se
+copia toda la carpeta `datos/` en `datos/respaldos/AAAA-MM-DD/`. Se conservan
+los últimos 30 días. Si algún día un archivo se daña, copia el de la fecha
+anterior en su lugar.
 
 Para respaldar todo, simplemente **copia la carpeta `datos/`** a un USB, a la
 nube, donde quieras. Puedes abrir esos archivos con el Bloc de notas si
@@ -99,6 +106,29 @@ Si no configuras esto (dejas los valores de ejemplo tal cual), la app
 simplemente nunca revisa nada — funciona exactamente igual que antes,
 sin ningún cambio de comportamiento.
 
+## 🛡️ Protección de datos (versión 2)
+
+- **Nunca arranca "en blanco":** si un archivo de `datos/` no se puede leer,
+  la caja muestra un aviso rojo y **no guarda nada**, para no borrar la
+  información real. El archivo dañado se copia como `*.DANADO-fecha.json`.
+- **Una sola ventana a la vez:** si se abre la caja en otra ventana (o con
+  "Abrir de nuevo"), la ventana anterior queda bloqueada con un aviso y deja
+  de guardar. Así dos ventanas no se pisan las ventas.
+- **Aviso si no se está guardando:** si se cierra el programa con la ventana
+  de la caja todavía abierta, aparece una franja roja y el botón **Cobrar**
+  se desactiva.
+- **Números de venta únicos:** el siguiente número es siempre el más alto + 1,
+  aunque se borren ventas. Si se cargan datos viejos con números repetidos,
+  se corrigen solos.
+- **Stock entre tickets:** no se puede vender más de lo que hay repartiéndolo
+  en varios tickets abiertos.
+- **Seguridad del servidor local:** solo acepta escrituras de la propia caja
+  (no de otras páginas web) y no permite reemplazar el historial de ventas por
+  uno mucho más corto por error.
+- **`caja.html` ya no se pisa en cada arranque:** el programa solo la
+  reemplaza cuando el `.exe` trae una versión nueva (deja la anterior como
+  `caja.html.bak`).
+
 ## Funciones
 
 
@@ -116,7 +146,8 @@ sin ningún cambio de comportamiento.
     en PDF (para guardarlo) y una conversación de WhatsApp con el resumen del
     día ya escrito — solo te falta arrastrar el PDF a la conversación y
     darle enviar.
-- **Exportar**: descarga un CSV con ventas, inventario y resumen diario.
+- **Exportar**: descarga un CSV con ventas (incluye número de venta y nota),
+  inventario y resumen diario.
 
 ## Personalización
 
