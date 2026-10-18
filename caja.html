@@ -116,6 +116,12 @@
   .hist-wrap{flex:1;overflow-y:auto;padding:0 14px 14px;}
   .hist-table-date{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;padding:12px 0 6px;}
   .hist-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;}
+  .hist-card.kbd-focus{outline:2px solid var(--acc);outline-offset:-1px;background:var(--bg4);}
+  .atajo-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .atajo-btn{background:var(--bg3);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:3px 9px;font-family:var(--mono);font-size:11px;color:var(--text2);cursor:pointer;min-width:90px;}
+  .atajo-btn:hover{border-color:var(--acc);}
+  .atajo-btn.capturando{border-color:var(--acc);color:var(--acc);}
+  .atajo-sec{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin:6px 0 2px;}
   .hist-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
   .hist-id{font-family:var(--mono);font-size:12px;color:var(--text2);}
   .hist-time{font-family:var(--mono);font-size:11px;color:var(--text3);}
@@ -347,22 +353,29 @@
 
 <!-- ATAJOS DE TECLADO -->
 <div class="modal-bg" id="shortcuts-modal" style="display:none">
-  <div class="modal" style="max-width:420px;width:95vw">
-    <h2 style="margin-bottom:14px">⌨️ Atajos de teclado</h2>
-    <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Buscar productos</span><kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">F</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Moverse entre productos</span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd><kbd class="kbd">←</kbd><kbd class="kbd">→</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Agregar el producto enfocado</span><kbd class="kbd">Enter</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Descontar 1 unidad</span><kbd class="kbd">⌫ Backspace</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Quitar la línea completa</span><kbd class="kbd">Shift</kbd> + <kbd class="kbd">⌫</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Vaciar todo el ticket</span><kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">⌫</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Cambiar método de pago</span><kbd class="kbd">1</kbd><kbd class="kbd">2</kbd><kbd class="kbd">3</kbd><kbd class="kbd">4</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Cobrar</span><kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Nuevo ticket / venta</span><kbd class="kbd">Alt</kbd> + <kbd class="kbd">N</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Cerrar ventanas / limpiar búsqueda</span><kbd class="kbd">Esc</kbd></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span>Ver esta ayuda</span><kbd class="kbd">?</kbd></div>
+  <div class="modal" style="max-width:460px;width:95vw;max-height:90vh;overflow-y:auto">
+    <h2 style="margin-bottom:6px">⌨️ Atajos de teclado</h2>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Haz clic en un atajo y presiona la nueva combinación de teclas para cambiarlo (Esc cancela, Supr lo deja sin atajo).</p>
+    <div style="display:flex;flex-direction:column;gap:7px;font-size:13px">
+      <div class="atajo-sec">Personalizables</div>
+      <div id="atajos-list" style="display:flex;flex-direction:column;gap:7px"></div>
+      <div class="atajo-sec">Venta (fijos)</div>
+      <div class="atajo-row"><span>Moverse entre productos</span><span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd><kbd class="kbd">←</kbd><kbd class="kbd">→</kbd></span></div>
+      <div class="atajo-row"><span>Agregar el producto enfocado</span><kbd class="kbd">Enter</kbd></div>
+      <div class="atajo-row"><span>Descontar 1 unidad</span><kbd class="kbd">⌫ Backspace</kbd></div>
+      <div class="atajo-row"><span>Quitar la línea completa</span><span><kbd class="kbd">Shift</kbd> + <kbd class="kbd">⌫</kbd></span></div>
+      <div class="atajo-row"><span>Cerrar ventanas / limpiar búsqueda</span><kbd class="kbd">Esc</kbd></div>
+      <div class="atajo-sec">Historial (fijos)</div>
+      <div class="atajo-row"><span>Moverse entre ventas</span><span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd></span></div>
+      <div class="atajo-row"><span>Saltar de 5 en 5</span><span><kbd class="kbd">RePág</kbd><kbd class="kbd">AvPág</kbd></span></div>
+      <div class="atajo-row"><span>Primera / última venta</span><span><kbd class="kbd">Inicio</kbd><kbd class="kbd">Fin</kbd></span></div>
+      <div class="atajo-row"><span>Editar la venta seleccionada</span><kbd class="kbd">Enter</kbd></div>
+      <div class="atajo-row"><span>Borrar la venta seleccionada</span><kbd class="kbd">Supr</kbd></div>
     </div>
-    <button class="modal-cancel" id="btn-close-shortcuts" style="width:100%;margin-top:18px">Cerrar</button>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="modal-cancel" id="btn-reset-atajos">Restaurar predeterminados</button>
+      <button class="modal-cancel" id="btn-close-shortcuts">Cerrar</button>
+    </div>
   </div>
 </div>
 
@@ -517,6 +530,150 @@ let productos = JSON.parse(JSON.stringify(DEFAULT_PRODS));
 let ventas    = [];
 let stats     = {total:0,efectivo:0,nequi:0,otros:0,base:0,trans:0,date:'',baseAskedDate:''};
 let config    = {whatsapp:''};
+
+// ═══════════════════════════════════════════════════════
+// ATAJOS DE TECLADO PERSONALIZABLES
+// Los cambios se guardan en config.atajos ({id: "Ctrl+Enter"}); solo se
+// guardan los que el usuario cambió, el resto usa el valor predeterminado.
+// enInputs: el atajo también funciona mientras se escribe en un campo
+// (solo si la combinación lleva Ctrl o Alt, para no robar letras).
+// ═══════════════════════════════════════════════════════
+const ATAJOS = [
+  {id:'buscar',       nombre:'Buscar productos',        def:'Ctrl+F',         enInputs:true,  conModal:true,
+   run: () => { showTab('venta'); el('search').focus(); el('search').select(); }},
+  {id:'cobrar',       nombre:'Cobrar',                  def:'Ctrl+Enter',     enInputs:true,
+   run: () => { if (!el('cobrar-btn').disabled) cobrar(); }},
+  {id:'nuevoTicket',  nombre:'Nuevo ticket / venta',    def:'Alt+N',          enInputs:true,
+   run: () => addCola()},
+  {id:'vaciar',       nombre:'Vaciar todo el ticket',   def:'Ctrl+Backspace', enInputs:false,
+   run: () => clearTicket()},
+  {id:'pagoEfectivo', nombre:'Pago en efectivo',        def:'1',              enInputs:false, run: () => setPay('Efectivo')},
+  {id:'pagoNequi',    nombre:'Pago por Nequi',          def:'2',              enInputs:false, run: () => setPay('Nequi')},
+  {id:'pagoOtros',    nombre:'Pago con otros medios',   def:'3',              enInputs:false, run: () => setPay('Otros')},
+  {id:'pagoDividido', nombre:'Pago dividido',           def:'4',              enInputs:false, run: () => setPay('Dividido')},
+  {id:'irVenta',      nombre:'Ir a Venta',              def:'Alt+1',          enInputs:true,  run: () => showTab('venta')},
+  {id:'irProductos',  nombre:'Ir a Productos',          def:'Alt+2',          enInputs:true,  run: () => showTab('productos')},
+  {id:'irHistorial',  nombre:'Ir a Historial',          def:'Alt+3',          enInputs:true,  run: () => showTab('historial')},
+  {id:'ayuda',        nombre:'Ver / cambiar atajos',    def:'?',              enInputs:false, run: () => abrirAtajos()},
+];
+// Teclas que ya tienen un uso fijo y no se pueden asignar sin Ctrl/Alt
+const TECLAS_RESERVADAS = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter','Backspace','Delete',
+                           'Escape','Tab','Home','End','PageUp','PageDown','Space'];
+const NOMBRE_TECLA = {Backspace:'⌫', Delete:'Supr', ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→',
+                      Escape:'Esc', Space:'Espacio', PageUp:'RePág', PageDown:'AvPág', Home:'Inicio', End:'Fin'};
+let capturandoAtajo = null;   // id del atajo que se está cambiando
+
+function atajoDe(id) {
+  const a = ATAJOS.find(x => x.id === id);
+  if (config.atajos && Object.prototype.hasOwnProperty.call(config.atajos, id)) return config.atajos[id] || '';
+  return a ? a.def : '';
+}
+function textoAtajo(combo) {
+  return combo ? combo.split('+').map(p => NOMBRE_TECLA[p] || p).join(' + ') : 'Sin atajo';
+}
+// Convierte un evento de teclado en texto tipo "Ctrl+Alt+K"
+function comboDeEvento(e) {
+  const k = e.key;
+  if (!k || ['Control','Shift','Alt','Meta','AltGraph','Dead','Unidentified','CapsLock'].includes(k)) return null;
+  let tecla = k === ' ' ? 'Space' : (k.length === 1 ? k.toUpperCase() : k);
+  const partes = [];
+  if (e.ctrlKey || e.metaKey) partes.push('Ctrl');
+  if (e.altKey) partes.push('Alt');
+  // Shift solo cuenta en letras y teclas especiales (en "?" ya viene incluido)
+  if (e.shiftKey && (k.length > 1 || /^[a-zñ]$/i.test(k))) partes.push('Shift');
+  partes.push(tecla);
+  return partes.join('+');
+}
+function tieneModificador(combo) { return /(^|\+)(Ctrl|Alt)\+/.test(combo); }
+
+// Ejecuta el atajo personalizable que coincida. Devuelve true si se usó.
+function ejecutarAtajo(e, isTyping) {
+  const combo = comboDeEvento(e);
+  if (!combo) return false;
+  const a = ATAJOS.find(x => atajoDe(x.id) === combo);
+  if (!a) return false;
+  if (isTyping && !(a.enInputs && tieneModificador(combo))) return false;
+  if (anyModalOpen() && !a.conModal) return false;
+  e.preventDefault();
+  a.run();
+  return true;
+}
+
+function renderAtajos() {
+  const list = el('atajos-list');
+  if (!list) return;
+  list.innerHTML = '';
+  ATAJOS.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'atajo-row';
+    const capt = capturandoAtajo === a.id;
+    row.innerHTML = '<span>' + esc(a.nombre) + '</span>' +
+      '<button class="atajo-btn' + (capt ? ' capturando' : '') + '" title="Clic para cambiar">' +
+      (capt ? 'Presiona las teclas…' : esc(textoAtajo(atajoDe(a.id)))) + '</button>';
+    row.querySelector('button').addEventListener('click', ev => {
+      capturandoAtajo = capt ? null : a.id;
+      ev.currentTarget.blur();
+      renderAtajos();
+    });
+    list.appendChild(row);
+  });
+  actualizarEtiquetasAtajos();
+}
+function guardarAtajo(id, combo) {
+  if (combo) {
+    const otro = ATAJOS.find(x => x.id !== id && atajoDe(x.id) === combo);
+    if (otro) {
+      if (!confirm('"' + textoAtajo(combo) + '" ya lo usa "' + otro.nombre + '". ¿Quitárselo y asignarlo aquí?')) return;
+      config.atajos = Object.assign({}, config.atajos, {[otro.id]: ''});
+    }
+  }
+  const def = ATAJOS.find(x => x.id === id).def;
+  config.atajos = Object.assign({}, config.atajos);
+  if (combo === def) delete config.atajos[id]; else config.atajos[id] = combo;
+  saveConfig();
+}
+function abrirAtajos() {
+  capturandoAtajo = null;
+  renderAtajos();
+  el('shortcuts-modal').style.display = 'flex';
+}
+function cerrarAtajos() {
+  capturandoAtajo = null;
+  el('shortcuts-modal').style.display = 'none';
+}
+function actualizarEtiquetasAtajos() {
+  const b = atajoDe('buscar'), h = atajoDe('ayuda');
+  el('search').placeholder = '🔍  Buscar producto...' + (b ? ' (' + textoAtajo(b) + ')' : '');
+  el('btn-shortcuts').title = 'Ver y cambiar atajos de teclado' + (h ? ' (' + textoAtajo(h) + ')' : '');
+  actualizarCobrarBloqueo();
+}
+// Mientras se está cambiando un atajo, la tecla presionada solo se captura
+// (fase de captura: no llega a ningún otro manejador de teclado).
+window.addEventListener('keydown', e => {
+  if (!capturandoAtajo) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const id = capturandoAtajo;
+  const sinMod = !e.ctrlKey && !e.metaKey && !e.altKey;
+  if (e.key === 'Escape' && sinMod) { capturandoAtajo = null; renderAtajos(); return; }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && sinMod) {
+    capturandoAtajo = null; guardarAtajo(id, ''); renderAtajos(); return;
+  }
+  const combo = comboDeEvento(e);
+  if (!combo) return;  // solo se presionó Ctrl/Alt/Shift: seguir esperando
+  if (!tieneModificador(combo) && TECLAS_RESERVADAS.includes(combo.replace(/^Shift\+/, ''))) {
+    alert('"' + textoAtajo(combo) + '" ya se usa para moverse por la caja. Combínala con Ctrl o Alt.');
+    return;
+  }
+  if (combo === 'Ctrl+W' || combo === 'Ctrl+R' || combo === 'Ctrl+T' || combo === 'Alt+F4' || combo === 'F5') {
+    alert('"' + textoAtajo(combo) + '" lo usa el sistema/navegador (cerrar o recargar la ventana). Elige otra combinación.');
+    return;
+  }
+  capturandoAtajo = null;
+  guardarAtajo(id, combo);
+  renderAtajos();
+}, true);
+
 let ticket    = [];
 let payMethod = 'Efectivo';
 let activeCat = 'Todos';
@@ -551,7 +708,7 @@ function actualizarCobrarBloqueo() {
   const btn = el('cobrar-btn');
   if (!btn) return;
   if (bloqueada || !guardadoOK) { btn.disabled = true; btn.title = 'No se puede cobrar: los datos no se están guardando'; }
-  else { btn.title = 'Atajo: Ctrl+Enter'; }
+  else { btn.title = atajoDe('cobrar') ? 'Atajo: ' + atajoDe('cobrar') : ''; }
 }
 function puedeGuardar() { return !bloqueada && guardadoOK; }
 
@@ -931,8 +1088,14 @@ function clearTicket() {
   renderTicket();
 }
 el('cancel-btn').addEventListener('click', clearTicket);
-el('btn-shortcuts').addEventListener('click', () => { el('shortcuts-modal').style.display = 'flex'; });
-el('btn-close-shortcuts').addEventListener('click', () => { el('shortcuts-modal').style.display = 'none'; });
+el('btn-shortcuts').addEventListener('click', abrirAtajos);
+el('btn-close-shortcuts').addEventListener('click', cerrarAtajos);
+el('btn-reset-atajos').addEventListener('click', () => {
+  if (!confirm('¿Volver a los atajos de teclado originales?')) return;
+  delete config.atajos;
+  saveConfig();
+  renderAtajos();
+});
 
 // ═══════════════════════════════════════════════════════
 // MÉTODOS DE PAGO
@@ -1375,6 +1538,7 @@ function renderHistorial() {
   });
 
   wrap.innerHTML = '';
+  histCards = [];
   Object.entries(byDate).forEach(([fecha, vs]) => {
     const dateDiv = document.createElement('div');
     dateDiv.className = 'hist-table-date';
@@ -1407,9 +1571,44 @@ function renderHistorial() {
         (v.nota ? '<div style="font-size:11px;color:var(--text3);margin-top:4px;font-style:italic">📝 ' + esc(v.nota) + '</div>' : '');
       card.querySelector('.btn-edit').addEventListener('click', () => openEditVenta(v));
       card.querySelector('.btn-del').addEventListener('click',  () => deleteVenta(v));
+      const pos = histCards.length;
+      card.addEventListener('click', () => setHistFocus(pos, false));
+      histCards.push({card, venta: v});
       wrap.appendChild(card);
     });
   });
+  // Conservar la venta seleccionada al volver a pintar (tras editar/borrar)
+  if (histFocusIndex >= 0) setHistFocus(Math.min(histFocusIndex, histCards.length - 1), false);
+}
+
+// ── Navegación del historial con el teclado ──
+let histCards = [];        // [{card, venta}] en el orden en que se ven
+let histFocusIndex = -1;
+function setHistFocus(idx, desplazar = true) {
+  histCards.forEach(h => h.card.classList.remove('kbd-focus'));
+  if (!histCards.length) { histFocusIndex = -1; return; }
+  idx = Math.max(0, Math.min(histCards.length - 1, idx));
+  histFocusIndex = idx;
+  const card = histCards[idx].card;
+  card.classList.add('kbd-focus');
+  if (desplazar) card.scrollIntoView({block: 'nearest'});
+}
+// Devuelve true si la tecla se usó para moverse/actuar en el historial
+function teclaHistorial(e) {
+  const n = histCards.length;
+  if (!n) return false;
+  const i = histFocusIndex;
+  switch (e.key) {
+    case 'ArrowDown': setHistFocus(i < 0 ? 0 : i + 1); return true;
+    case 'ArrowUp':   setHistFocus(i < 0 ? 0 : i - 1); return true;
+    case 'PageDown':  setHistFocus(i < 0 ? 0 : i + 5); return true;
+    case 'PageUp':    setHistFocus(i < 0 ? 0 : i - 5); return true;
+    case 'Home':      setHistFocus(0);     return true;
+    case 'End':       setHistFocus(n - 1); return true;
+    case 'Enter':     if (i >= 0) { openEditVenta(histCards[i].venta); return true; } return false;
+    case 'Delete':    if (i >= 0) { deleteVenta(histCards[i].venta);   return true; } return false;
+  }
+  return false;
 }
 el('hist-filter-prod').addEventListener('change', renderHistorial);
 
@@ -1948,19 +2147,25 @@ document.addEventListener('keydown', e => {
   const isTyping = activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select' ||
                    (document.activeElement && document.activeElement.isContentEditable);
 
-  // Ctrl+F (o Cmd+F en Mac): enfocar la búsqueda de productos en vez de
-  // abrir el buscador nativo del navegador.
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+  // Atajos personalizables (buscar, cobrar, nuevo ticket, métodos de pago…)
+  if (ejecutarAtajo(e, isTyping)) return;
+
+  // Ctrl+F nunca abre el buscador nativo del navegador, aunque se le haya
+  // quitado o cambiado el atajo a "Buscar productos".
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); return; }
+
+  // Historial: flechas, RePág/AvPág, Inicio/Fin, Enter (editar), Supr (borrar)
+  if (el('view-historial').classList.contains('active') && !anyModalOpen() && !isTyping &&
+      !e.ctrlKey && !e.metaKey && !e.altKey && teclaHistorial(e)) {
     e.preventDefault();
-    el('search').focus();
-    el('search').select();
     return;
   }
 
   // Flechas: navegar la grilla de productos (se puede entrar desde el
   // buscador con flecha abajo, o desde cualquier parte si no se está
   // escribiendo en otro campo).
-  const navegando = !anyModalOpen() && (!isTyping || document.activeElement === el('search'));
+  const navegando = el('view-venta').classList.contains('active') && !anyModalOpen() &&
+                    (!isTyping || document.activeElement === el('search'));
   if (navegando && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     const cards = gridCards();
     if (cards.length) {
@@ -1985,13 +2190,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // Ctrl+Backspace: vaciar el ticket completo (equivalente a "Cancelar venta")
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'Backspace' || e.key === 'Delete') && !isTyping && !anyModalOpen()) {
-    e.preventDefault();
-    clearTicket();
-    return;
-  }
-
   // Backspace/Delete con una tarjeta enfocada: descuenta una unidad del
   // producto en el ticket (Shift+Backspace/Delete quita la línea completa).
   if ((e.key === 'Backspace' || e.key === 'Delete') && !isTyping && !anyModalOpen() && gridFocusIndex >= 0) {
@@ -2013,34 +2211,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // Ctrl+Enter: cobrar la venta actual
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-    e.preventDefault();
-    if (!anyModalOpen() && !el('cobrar-btn').disabled) cobrar();
-    return;
-  }
-
-  // Alt+N: nueva venta / nueva cola (Ctrl+N está reservado por el navegador)
-  if (e.altKey && e.key.toLowerCase() === 'n') {
-    e.preventDefault();
-    if (!anyModalOpen()) addCola();
-    return;
-  }
-
-  // 1 / 2 / 3: cambiar método de pago rápido (solo si no se está escribiendo)
-  if (!isTyping && !anyModalOpen() && (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4')) {
-    const metodos = {'1':'Efectivo','2':'Nequi','3':'Otros','4':'Dividido'};
-    setPay(metodos[e.key]);
-    return;
-  }
-
-  // ?: abrir la ayuda de atajos de teclado
-  if (e.key === '?' && !isTyping && !anyModalOpen()) {
-    e.preventDefault();
-    el('shortcuts-modal').style.display = 'flex';
-    return;
-  }
-
   if (e.key === 'Escape') {
     // Si el foco está en la búsqueda y tiene texto, primero solo la limpia
     if (document.activeElement === el('search') && el('search').value) {
@@ -2056,7 +2226,7 @@ document.addEventListener('keydown', e => {
     el('success-modal').style.display     = 'none';
     el('auto-import-modal').style.display = 'none';
     el('manual-import-modal').style.display = 'none';
-    el('shortcuts-modal').style.display   = 'none';
+    cerrarAtajos();
     return;
   }
   if (e.key === 'Enter' && el('base-modal').style.display === 'flex') setBase();
@@ -2131,6 +2301,7 @@ async function initApp() {
     saveStats(); // stats se recalcula/rueda cada día
 
     if (el('wa-numero')) el('wa-numero').value = config.whatsapp || '';
+    actualizarEtiquetasAtajos();
 
     renderQueueTabs();
     renderCats();
