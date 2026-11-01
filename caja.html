@@ -165,6 +165,18 @@
   .queue-add-btn:hover{border-color:var(--acc);color:var(--acc);}
   #pdf-fecha-picker::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer;}
   body{font-variant-numeric:tabular-nums;}
+  :root{--acc-txt:#f2667f; --acc-fill:#d6324f;}
+  .prod-price,.t-sub,.tab.active,.badge-out{color:var(--acc-txt);}
+  .tab.active{border-bottom-color:var(--acc-txt);}
+  .cat-pill.active,.queue-tab.active,.btn-add{background:var(--acc-fill);border-color:var(--acc-fill);}
+  .cobrar-btn{background:var(--acc-fill);}
+  .pay-opt.sel{color:var(--acc-txt);}
+  /* Productos sin ícono propio (📦): sus iniciales en un círculo de color,
+     para distinguirlos de un vistazo */
+  .mono{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
+        color:#fff;font-weight:600;font-family:var(--font);line-height:1;}
+  .prod-icon .mono{width:26px;height:26px;font-size:11px;vertical-align:top;}
+  .t-icon .mono{width:22px;height:22px;font-size:10px;}
   .prod-name{font-size:12px;}
   .prod-card.out{opacity:1;background:transparent;}
   .prod-card.out .prod-icon{opacity:.35;}
@@ -270,8 +282,8 @@
     <div id="queue-tabs" style="display:flex;align-items:center;background:var(--bg3);border-bottom:1px solid var(--border);padding:6px 8px;gap:4px;overflow-x:auto;min-height:42px">
       <!-- se renderiza dinámicamente -->
     </div>
-    <div class="ticket-top" style="padding:8px 14px">
-      <div class="ticket-title"><span>TICKET <span id="queue-label" style="color:var(--acc)">1</span></span><span id="n-items" style="color:var(--text3)">vacío</span></div>
+    <div class="ticket-top" style="padding:8px 16px">
+      <div class="ticket-title"><span>Ticket <span id="queue-label" style="color:var(--acc)">1</span></span><span id="n-items" style="color:var(--text3)">vacío</span></div>
     </div>
     <div class="ticket-body" id="ticket-body"><div class="ticket-empty">Selecciona productos<br>del catálogo</div></div>
     <div class="totals-section">
@@ -683,6 +695,16 @@ let selIcon   = '📦';
 let gridFocusIndex = -1; // navegación por teclado en la grilla de productos
 
 // Escapa texto antes de meterlo en innerHTML (nombres, notas, categorías…)
+// Ícono del producto; si no tiene uno propio (📦), sus iniciales en un
+// círculo de un color fijo para ese nombre.
+function iconoProducto(p) {
+  const ic = p.icon || '📦';
+  if (ic !== '📦') return esc(ic);
+  const iniciales = (p.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  let h = 0; for (const c of (p.name || '')) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return '<span class="mono" style="background:hsl(' + h + ' 45% 34%)">' + esc(iniciales) + '</span>';
+}
+
 function esc(t) {
   return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -839,7 +861,7 @@ function renderGrid() {
     card.innerHTML =
       (low ? '<span class="badge badge-low">Bajo</span>' : '') +
       (out ? '<span class="badge badge-out">Agotado</span>' : '') +
-      '<span class="prod-icon">' + esc(p.icon||'📦') + '</span>' +
+      '<span class="prod-icon">' + iconoProducto(p) + '</span>' +
       '<div class="prod-name">' + esc(p.name) + '</div>' +
       '<div class="prod-price">' + fmt(p.price) + '</div>' +
       '<div class="prod-stock">' + (out ? 'Sin stock' : p.stock + ' uds') + '</div>';
@@ -1050,7 +1072,7 @@ function renderTicket() {
     const row = document.createElement('div');
     row.className = 't-item';
     row.innerHTML =
-      '<span class="t-icon">' + esc(item.icon||'📦') + '</span>' +
+      '<span class="t-icon">' + iconoProducto(item) + '</span>' +
       '<div class="t-info"><div class="t-name">' + esc(item.name) + '</div><div class="t-unit">' + fmt(item.price) + ' / ud</div></div>' +
       '<div class="t-qty-ctrl">' +
         '<div class="qty-btn" data-id="' + esc(item.id) + '" data-d="-1">−</div>' +
