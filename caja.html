@@ -164,20 +164,12 @@
   .queue-add-btn{width:28px;height:28px;border-radius:6px;border:1px dashed var(--border2);background:transparent;color:var(--text3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.12s;line-height:1;}
   .queue-add-btn:hover{border-color:var(--acc);color:var(--acc);}
   #pdf-fecha-picker::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer;}
-  /* Diseño: el rojo queda para Cobrar y para lo que pide atención;
-     precios, totales y lo seleccionado van en tinta. */
   body{font-variant-numeric:tabular-nums;}
   .prod-name{font-size:12px;}
-  .prod-price,.t-sub{color:var(--text);}
   .prod-card.out{opacity:1;background:transparent;}
   .prod-card.out .prod-icon{opacity:.35;}
   .prod-card.out .prod-name,.prod-card.out .prod-price{color:var(--text3);}
-  .tab.active{color:var(--text);border-bottom-color:var(--text);}
-  .cat-pill.active{background:var(--bg4);color:var(--text);border-color:var(--text2);}
-  .queue-tab.active{background:var(--bg4);border-color:var(--text2);color:var(--text);}
-  .pay-opt.sel{background:var(--bg4);border-color:var(--text);color:var(--text);}
-  .day-btn,.day-btn-open,.day-btn-close{background:var(--bg3);border-color:var(--border2);color:var(--text);}
-  .cobrar-btn:disabled{opacity:1;background:var(--bg3);color:var(--text3);}
+  #btn-config{background:var(--bg3);border-color:var(--border2);color:var(--text);}
   #monto-recibido{width:100%;}
   /* Ventana angosta: la barra de arriba deja fuera lo menos usado */
   @media (max-width:1100px){ #topbar .tb-clock, .tb-stat:has(#s-prods), .tb-stat:has(#s-trans){display:none;} }
@@ -195,11 +187,11 @@
     <div class="tb-sep"></div>
     <div class="tb-stats">
       <div class="tb-stat"><div class="tb-stat-val" id="s-total">$0</div><div class="tb-stat-lbl">Total general</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-efectivo">$0</div><div class="tb-stat-lbl">💵 Efectivo</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-nequi">$0</div><div class="tb-stat-lbl">📱 Nequi</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-otros">$0</div><div class="tb-stat-lbl">➕ Otros</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-efectivo" style="color:var(--green)">$0</div><div class="tb-stat-lbl">💵 Efectivo</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-nequi" style="color:var(--blue)">$0</div><div class="tb-stat-lbl">📱 Nequi</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-otros" style="color:var(--amber)">$0</div><div class="tb-stat-lbl">➕ Otros</div></div>
       <div class="tb-stat"><div class="tb-stat-val" id="s-trans">0</div><div class="tb-stat-lbl">Transac.</div></div>
-      <div class="tb-stat" style="cursor:pointer" id="base-stat-btn"><div class="tb-stat-val" id="s-base">$0</div><div class="tb-stat-lbl">Base caja ✏️</div></div>
+      <div class="tb-stat" style="cursor:pointer" id="base-stat-btn"><div class="tb-stat-val" id="s-base" style="color:var(--amber)">$0</div><div class="tb-stat-lbl">Base caja ✏️</div></div>
       <div class="tb-stat"><div class="tb-stat-val" id="s-prods" style="color:var(--text2)">0</div><div class="tb-stat-lbl">Productos</div></div>
     </div>
     <div class="tb-clock" id="clock"></div>
@@ -321,6 +313,10 @@
       </div>
       <button class="cobrar-btn" id="cobrar-btn" disabled title="Atajo: Ctrl+Enter">Cobrar</button>
       <button class="cancel-btn" id="cancel-btn">Cancelar venta</button>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="export-btn" id="btn-csv-ticket" style="flex:1">↓ CSV</button>
+        <button class="export-btn" id="btn-pdf-ticket" style="flex:1;background:rgba(233,69,96,0.12);border-color:rgba(233,69,96,0.3);color:var(--acc)">↓ PDF Hoy</button>
+      </div>
     </div>
   </div>
 </div>
@@ -842,6 +838,7 @@ function renderGrid() {
     card.dataset.id = p.id;
     card.innerHTML =
       (low ? '<span class="badge badge-low">Bajo</span>' : '') +
+      (out ? '<span class="badge badge-out">Agotado</span>' : '') +
       '<span class="prod-icon">' + esc(p.icon||'📦') + '</span>' +
       '<div class="prod-name">' + esc(p.name) + '</div>' +
       '<div class="prod-price">' + fmt(p.price) + '</div>' +
@@ -1684,6 +1681,7 @@ function exportExcel() {
   a.click();
 }
 el('btn-export-csv').addEventListener('click', exportExcel);
+el('btn-csv-ticket').addEventListener('click', exportExcel);
 
 // ═══════════════════════════════════════════════════════
 // EXPORTAR PDF (solo ventas de hoy)
@@ -2277,6 +2275,7 @@ el('btn-pdf-fecha').addEventListener('click', () => {
 });
 // PDF hoy
 el('btn-export-pdf').addEventListener('click', () => exportPDF());
+el('btn-pdf-ticket').addEventListener('click', () => exportPDF());
 // Poner fecha de hoy por defecto en el picker
 const todayISO = isoLocal(new Date());
 el('pdf-fecha-picker').value = todayISO;
