@@ -494,9 +494,10 @@
           <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">💰 Pago por unidad vendida</div>
           <div id="pagos-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
           <details style="margin-top:8px">
-            <summary style="font-size:10px;color:var(--text3);cursor:pointer">Reporte automático</summary>
-            <input class="form-input" id="rep-telefono" placeholder="Teléfono con indicativo, ej: 573001234567" style="margin-top:8px">
-            <input class="form-input" id="rep-apikey" placeholder="apikey de CallMeBot" style="margin-top:6px">
+            <summary style="font-size:10px;color:var(--text3);cursor:pointer">Reporte automático (Telegram)</summary>
+            <input class="form-input" id="rep-token" placeholder="Token del bot (te lo da @BotFather)" style="margin-top:8px">
+            <input class="form-input" id="rep-chat" placeholder="Chat ID (se detecta solo)" style="margin-top:6px">
+            <button class="export-btn" id="btn-rep-detectar" style="width:100%;margin-top:6px">🔍 Detectar chat y enviar prueba</button>
           </details>
         </div>
       </div>
@@ -2139,9 +2140,9 @@ el('wa-numero').addEventListener('change', () => {
 });
 
 // ═══════════════════════════════════════════════════════
-// PAGO POR UNIDAD VENDIDA + REPORTE AUTOMÁTICO POR WHATSAPP
+// PAGO POR UNIDAD VENDIDA + REPORTE AUTOMÁTICO POR TELEGRAM
 // config.pagosProducto = {idProducto: pesos por unidad}
-// config.reporte = {telefono, apikey} (CallMeBot). Viven solo en datos/config.json.
+// config.reporte = {token, chatId} del bot de Telegram. Viven solo en datos/config.json.
 // ═══════════════════════════════════════════════════════
 const PAGOS_DEF = {P012: 3000, P017: 200};  // Helado Artesanal, Paleta
 function pagosProducto() { return config.pagosProducto || PAGOS_DEF; }
@@ -2179,19 +2180,45 @@ function renderPagos() {
     list.appendChild(row);
   });
   const rep = config.reporte || {};
-  el('rep-telefono').value = rep.telefono || '';
-  el('rep-apikey').value   = rep.apikey   || '';
+  el('rep-token').value = rep.token  || '';
+  el('rep-chat').value  = rep.chatId || '';
 }
-['rep-telefono', 'rep-apikey'].forEach(id => el(id).addEventListener('change', () => {
-  config.reporte = {telefono: el('rep-telefono').value.replace(/\D/g, ''), apikey: el('rep-apikey').value.trim()};
+function guardarReporte() {
+  config.reporte = {token: el('rep-token').value.trim(), chatId: el('rep-chat').value.trim()};
   saveConfig();
-}));
+}
+['rep-token', 'rep-chat'].forEach(id => el(id).addEventListener('change', guardarReporte));
+
+// Llamada a la API de bots de Telegram (formulario simple: sin preflight CORS)
+async function telegram(token, metodo, params) {
+  const r = await fetch('https://api.telegram.org/bot' + token + '/' + metodo,
+                        {method: 'POST', body: new URLSearchParams(params || {}), cache: 'no-store'});
+  return r.json();
+}
+
+// Toma el chat del último mensaje que recibió el bot y envía una prueba
+el('btn-rep-detectar').addEventListener('click', async () => {
+  const token = el('rep-token').value.trim();
+  if (!token) { alert('Primero pega el token del bot (te lo da @BotFather en Telegram).'); el('rep-token').focus(); return; }
+  try {
+    const up = await telegram(token, 'getUpdates');
+    if (!up.ok) { alert('Telegram rechazó el token: ' + (up.description || 'revisa que esté completo.')); return; }
+    const msgs = up.result.map(u => u.message || u.channel_post).filter(Boolean);
+    if (!msgs.length) { alert('Abre tu bot en Telegram, envíale cualquier mensaje (por ejemplo "hola") y vuelve a presionar este botón.'); return; }
+    el('rep-chat').value = String(msgs[msgs.length - 1].chat.id);
+    guardarReporte();
+    const r = await telegram(token, 'sendMessage', {chat_id: config.reporte.chatId, text: '✅ Caja Nirvana conectada. Aquí llegará el resumen al exportar el PDF.'});
+    alert(r.ok ? '✅ Listo: revisa Telegram, te llegó un mensaje de prueba.' : 'No se pudo enviar la prueba: ' + (r.description || ''));
+  } catch (e) {
+    alert('No hay conexión con Telegram. Revisa el internet e intenta de nuevo.');
+  }
+});
 
 // Se envía en segundo plano al exportar el PDF; si no hay internet o no está
 // configurado, no pasa nada (no interrumpe el cierre).
 function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
   const rep = config.reporte || {};
-  if (!rep.telefono || !rep.apikey) return;
+  if (!rep.token || !rep.chatId) return;
   const pagos = resumenPagos(ventasDia, pagosProducto());
   const texto = [
     '📊 Cierre Nirvana ' + fecha + ' (' + ventasDia.length + ' ventas)',
@@ -2205,10 +2232,7 @@ function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
     'Total del día menos pago: ' + fmt(total - pagos.total),
     'Efectivo menos pago: ' + fmt(efectivo - pagos.total),
   ].join('\n');
-  // no-cors: CallMeBot no responde con CORS; igual recibe el mensaje.
-  fetch('https://api.callmebot.com/whatsapp.php?phone=%2B' + rep.telefono +
-        '&text=' + encodeURIComponent(texto) + '&apikey=' + encodeURIComponent(rep.apikey),
-        {mode: 'no-cors', cache: 'no-store'}).catch(() => {});
+  telegram(rep.token, 'sendMessage', {chat_id: rep.chatId, text: texto}).catch(() => {});
 }
 
 el('btn-inicio-dia').addEventListener('click', () => openDayModal('inicio'));
