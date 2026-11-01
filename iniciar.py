@@ -518,6 +518,13 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = self.path.split("?", 1)[0]
 
+        # La API solo responde a la propia caja: otra página web abierta en
+        # el navegador podría pedir /api/session y dejar la caja sin poder
+        # guardar. (Sin la cabecera = navegador viejo o herramienta local.)
+        if path.startswith("/api/") and self.headers.get("Sec-Fetch-Site", "same-origin") != "same-origin":
+            self._json(403, {"error": "origen no permitido"})
+            return
+
         # Cada ventana de la caja pide un token al arrancar; la última que
         # lo pide queda como la única que puede guardar.
         if path == "/api/session":
@@ -617,9 +624,8 @@ class Handler(BaseHTTPRequestHandler):
         f = DATA_DIR / f"{key}.json"
         with _data_lock:
             # Protección: ventas.json no se puede reemplazar por una lista
-            # mucho más corta (desde la app solo se borra de a una venta),
-            # salvo en una importación explícita.
-            if key == "ventas" and f.exists() and self.headers.get("X-Caja-Reemplazo") != "1":
+            # mucho más corta (desde la app solo se borra de a una venta).
+            if key == "ventas" and f.exists():
                 try:
                     actuales = json.loads(f.read_text(encoding="utf-8"))
                 except Exception:

@@ -101,6 +101,15 @@ cajas lo toman la próxima vez que se abra el programa.
 **Solo se actualiza `caja.html`.** Si cambias `iniciar.py` hay que generar un
 instalador nuevo (`build_windows.bat`) y reemplazar `CajaNirvana.exe`.
 
+El instalador (`dist/`) ya **no se sube al repositorio** (pesa 12 MB y git
+guardaría cada versión para siempre). Para compartirlo, súbelo como
+**Release** en GitHub: pestaña *Releases* → *Draft a new release* → arrastra
+`dist\CajaNirvana_Instalador.exe`.
+
+Antes de compilar o subir un cambio a `iniciar.py`, corre las pruebas de las
+protecciones de datos: `python -m unittest discover tests` (usan una carpeta
+temporal, no tocan `datos/`).
+
 El repositorio debe seguir siendo **público** (no lleva ninguna credencial ni
 dato del negocio: la carpeta `datos/` está en `.gitignore` y nunca se sube).
 Para desactivar la actualización, vuelve a poner `GITHUB_USER =

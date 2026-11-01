@@ -12,3 +12,8 @@ __pycache__/
 caja.html.bak
 caja.html.nuevo
 .caja_html_empacado
+
+# Instalador compilado: se publica como Release de GitHub, no en el repo
+dist/
+# Lo genera build_windows.bat en cada compilación
+*.spec
