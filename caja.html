@@ -402,10 +402,7 @@
       <div id="pagos-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
     </div>
 
-    <div style="display:flex;gap:8px">
-      <button class="export-btn" id="btn-config-atajos" style="flex:1">⌨️ Atajos de teclado</button>
-      <button class="export-btn" id="btn-config-base" style="flex:1">💰 Base de caja</button>
-    </div>
+    <button class="export-btn" id="btn-config-atajos" style="width:100%">⌨️ Atajos de teclado</button>
     <button class="modal-cancel" id="btn-close-config" style="width:100%;margin-top:14px">Cerrar</button>
   </div>
 </div>
@@ -2217,7 +2214,6 @@ function cerrarConfig() { el('config-modal').style.display = 'none'; }
 el('btn-config').addEventListener('click', abrirConfig);
 el('btn-close-config').addEventListener('click', cerrarConfig);
 el('btn-config-atajos').addEventListener('click', () => { cerrarConfig(); abrirAtajos(); });
-el('btn-config-base').addEventListener('click',   () => { cerrarConfig(); openBaseModal(); });
 
 // Llamada a la API de bots de Telegram (formulario simple: sin preflight CORS)
 async function telegram(token, metodo, params) {
