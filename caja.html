@@ -13,7 +13,7 @@
   :root {
     --bg:#0d0f14; --bg2:#141720; --bg3:#1c2030; --bg4:#242840;
     --acc:#e94560; --green:#00d084; --amber:#ffb830; --blue:#4a9eff;
-    --text:#e8eaf0; --text2:#8890a8; --text3:#5a6278;
+    --text:#e8eaf0; --text2:#a3aac0; --text3:#8a92aa;
     --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
     --radius:10px; --font:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
   }
@@ -29,7 +29,7 @@
   .tb-stats{display:flex;gap:20px;}
   .tb-stat{text-align:center;}
   .tb-stat-val{font-size:15px;font-weight:600;color:var(--text);font-family:var(--mono);}
-  .tb-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+  .tb-stat-lbl{font-size:11px;color:var(--text3);}
   .day-btn{padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid;}
   .day-btn-open{background:rgba(0,208,132,0.15);border-color:rgba(0,208,132,0.35);color:var(--green);}
   .day-btn-close{background:rgba(233,69,96,0.12);border-color:rgba(233,69,96,0.3);color:var(--acc);}
@@ -53,21 +53,21 @@
   .prod-icon{font-size:26px;margin-bottom:6px;line-height:1;display:block;}
   .prod-name{font-size:11px;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:5px;}
   .prod-price{font-size:13px;font-weight:600;color:var(--acc);font-family:var(--mono);}
-  .prod-stock{font-size:10px;color:var(--text3);margin-top:3px;}
-  .badge{position:absolute;top:6px;right:6px;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:600;}
+  .prod-stock{font-size:11px;color:var(--text3);margin-top:3px;}
+  .badge{position:absolute;top:6px;right:6px;padding:2px 5px;border-radius:4px;font-size:11px;font-weight:600;}
   .badge-low{background:rgba(255,184,48,0.2);color:var(--amber);}
   .badge-out{background:rgba(233,69,96,0.2);color:var(--acc);}
-  .badge-inCart{position:absolute;top:6px;left:6px;right:auto;background:rgba(0,208,132,0.85);color:#06120c;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:700;}
+  .badge-inCart{position:absolute;top:6px;left:6px;right:auto;background:rgba(0,208,132,0.85);color:#06120c;padding:2px 6px;border-radius:10px;font-size:11px;font-weight:700;}
   .kbd{background:var(--bg3);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:11px;color:var(--text2);}
-  .ticket-top{background:var(--bg3);padding:12px 14px;border-bottom:1px solid var(--border);}
-  .ticket-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;}
+  .ticket-top{background:var(--bg3);padding:12px 16px;border-bottom:1px solid var(--border);}
+  .ticket-title{font-size:11px;font-weight:600;color:var(--text2);display:flex;justify-content:space-between;}
   .ticket-body{flex:1;overflow-y:auto;padding:8px;}
   .ticket-empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:13px;line-height:2;}
   .t-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:4px;background:var(--bg3);border:1px solid var(--border);}
   .t-icon{font-size:18px;flex-shrink:0;}
   .t-info{flex:1;min-width:0;}
   .t-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .t-unit{font-size:10px;color:var(--text3);font-family:var(--mono);}
+  .t-unit{font-size:11px;color:var(--text3);font-family:var(--mono);}
   .t-qty-ctrl{display:flex;align-items:center;gap:5px;}
   .qty-btn{width:22px;height:22px;border:1px solid var(--border2);border-radius:6px;background:var(--bg4);color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
   .qty-btn:hover{border-color:var(--acc);color:var(--acc);}
@@ -96,12 +96,12 @@
   .btn-add:hover{background:#c73652;}
   .prod-table-wrap{flex:1;overflow-y:auto;padding:0 14px 14px;}
   table{width:100%;border-collapse:collapse;margin-top:10px;}
-  thead th{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:1;}
+  thead th{font-size:11px;font-weight:600;color:var(--text3);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:1;}
   tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
   tbody tr:hover{background:var(--bg3);}
   tbody td{padding:9px 10px;font-size:13px;color:var(--text);}
   tbody td.mono{font-family:var(--mono);}
-  .status-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;}
+  .status-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
   .status-ok{background:rgba(0,208,132,0.15);color:var(--green);}
   .status-low{background:rgba(255,184,48,0.15);color:var(--amber);}
   .status-out{background:rgba(233,69,96,0.15);color:var(--acc);}
@@ -114,21 +114,21 @@
   .btn-del{background:rgba(233,69,96,0.1);border:1px solid rgba(233,69,96,0.25);color:var(--acc);margin-left:4px;}
   .btn-del:hover{background:rgba(233,69,96,0.2);}
   .hist-wrap{flex:1;overflow-y:auto;padding:0 14px 14px;}
-  .hist-table-date{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;padding:12px 0 6px;}
+  .hist-table-date{font-size:11px;font-weight:600;color:var(--text3);padding:12px 0 6px;}
   .hist-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;}
   .hist-card.kbd-focus{outline:2px solid var(--acc);outline-offset:-1px;background:var(--bg4);}
   .atajo-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .atajo-btn{background:var(--bg3);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:3px 9px;font-family:var(--mono);font-size:11px;color:var(--text2);cursor:pointer;min-width:90px;}
   .atajo-btn:hover{border-color:var(--acc);}
   .atajo-btn.capturando{border-color:var(--acc);color:var(--acc);}
-  .atajo-sec{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin:6px 0 2px;}
+  .atajo-sec{font-size:11px;color:var(--text3);margin:6px 0 2px;}
   .hist-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
   .hist-id{font-family:var(--mono);font-size:12px;color:var(--text2);}
   .hist-time{font-family:var(--mono);font-size:11px;color:var(--text3);}
   .hist-total{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--acc);}
-  .hist-method{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--text2);}
+  .hist-method{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--text2);}
   .hist-items-list{display:flex;flex-wrap:wrap;gap:4px;}
-  .hist-item-tag{font-size:10px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text2);}
+  .hist-item-tag{font-size:11px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text2);}
   .hist-item-hl{background:rgba(0,208,132,0.15);border-color:rgba(0,208,132,0.4);color:var(--green);font-weight:600;}
   .no-hist{padding:60px 20px;text-align:center;color:var(--text3);font-size:13px;}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px);}
@@ -137,7 +137,7 @@
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
   .form-row.full{grid-template-columns:1fr;}
   .form-group{display:flex;flex-direction:column;gap:5px;}
-  .form-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;}
+  .form-label{font-size:11px;font-weight:500;color:var(--text2);}
   .form-input,.form-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:var(--font);width:100%;}
   .form-input:focus,.form-select:focus{border-color:var(--acc);}
   .form-select option{background:var(--bg3);}
@@ -159,11 +159,28 @@
   .tab-toggle-btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all 0.15s;}
   .queue-tab{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);white-space:nowrap;transition:all 0.12s;position:relative;}
   .queue-tab.active{background:var(--acc);border-color:var(--acc);color:#fff;}
-  .queue-tab .q-badge{display:inline-block;background:rgba(255,255,255,0.25);border-radius:4px;font-size:9px;padding:1px 4px;margin-left:4px;}
+  .queue-tab .q-badge{display:inline-block;background:rgba(255,255,255,0.25);border-radius:4px;font-size:11px;padding:1px 4px;margin-left:4px;}
   .queue-tab.active .q-badge{background:rgba(255,255,255,0.3);}
   .queue-add-btn{width:28px;height:28px;border-radius:6px;border:1px dashed var(--border2);background:transparent;color:var(--text3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.12s;line-height:1;}
   .queue-add-btn:hover{border-color:var(--acc);color:var(--acc);}
   #pdf-fecha-picker::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer;}
+  /* Diseño: el rojo queda para Cobrar y para lo que pide atención;
+     precios, totales y lo seleccionado van en tinta. */
+  body{font-variant-numeric:tabular-nums;}
+  .prod-name{font-size:12px;}
+  .prod-price,.t-sub{color:var(--text);}
+  .prod-card.out{opacity:1;background:transparent;}
+  .prod-card.out .prod-icon{opacity:.35;}
+  .prod-card.out .prod-name,.prod-card.out .prod-price{color:var(--text3);}
+  .tab.active{color:var(--text);border-bottom-color:var(--text);}
+  .cat-pill.active{background:var(--bg4);color:var(--text);border-color:var(--text2);}
+  .queue-tab.active{background:var(--bg4);border-color:var(--text2);color:var(--text);}
+  .pay-opt.sel{background:var(--bg4);border-color:var(--text);color:var(--text);}
+  .day-btn,.day-btn-open,.day-btn-close{background:var(--bg3);border-color:var(--border2);color:var(--text);}
+  .cobrar-btn:disabled{opacity:1;background:var(--bg3);color:var(--text3);}
+  #monto-recibido{width:100%;}
+  /* Ventana angosta: la barra de arriba deja fuera lo menos usado */
+  @media (max-width:1100px){ #topbar .tb-clock, .tb-stat:has(#s-prods), .tb-stat:has(#s-trans){display:none;} }
 </style>
 </head>
 <body>
@@ -174,15 +191,15 @@
 
   <!-- TOPBAR -->
   <div id="topbar">
-    <span class="logo">☯ NIRVANA</span>
+    <h1 class="logo">☯ NIRVANA</h1>
     <div class="tb-sep"></div>
     <div class="tb-stats">
       <div class="tb-stat"><div class="tb-stat-val" id="s-total">$0</div><div class="tb-stat-lbl">Total general</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-efectivo" style="color:var(--green)">$0</div><div class="tb-stat-lbl">💵 Efectivo</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-nequi" style="color:var(--blue)">$0</div><div class="tb-stat-lbl">📱 Nequi</div></div>
-      <div class="tb-stat"><div class="tb-stat-val" id="s-otros" style="color:var(--amber)">$0</div><div class="tb-stat-lbl">➕ Otros</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-efectivo">$0</div><div class="tb-stat-lbl">💵 Efectivo</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-nequi">$0</div><div class="tb-stat-lbl">📱 Nequi</div></div>
+      <div class="tb-stat"><div class="tb-stat-val" id="s-otros">$0</div><div class="tb-stat-lbl">➕ Otros</div></div>
       <div class="tb-stat"><div class="tb-stat-val" id="s-trans">0</div><div class="tb-stat-lbl">Transac.</div></div>
-      <div class="tb-stat" style="cursor:pointer" id="base-stat-btn"><div class="tb-stat-val" id="s-base" style="color:var(--amber)">$0</div><div class="tb-stat-lbl">Base caja ✏️</div></div>
+      <div class="tb-stat" style="cursor:pointer" id="base-stat-btn"><div class="tb-stat-val" id="s-base">$0</div><div class="tb-stat-lbl">Base caja ✏️</div></div>
       <div class="tb-stat"><div class="tb-stat-val" id="s-prods" style="color:var(--text2)">0</div><div class="tb-stat-lbl">Productos</div></div>
     </div>
     <div class="tb-clock" id="clock"></div>
@@ -234,9 +251,9 @@
             <button class="btn-add" id="btn-export-csv" style="background:var(--green)">↓ CSV</button>
             <button class="btn-add" id="btn-export-pdf" style="background:#e94560">↓ PDF Hoy</button>
             <div style="display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:4px 8px">
-              <span style="font-size:10px;color:var(--text3);white-space:nowrap">📅 PDF fecha:</span>
+              <span style="font-size:11px;color:var(--text3);white-space:nowrap">📅 PDF fecha:</span>
               <input type="date" id="pdf-fecha-picker" style="background:transparent;border:none;color:var(--text2);font-size:11px;font-family:var(--mono);outline:none;cursor:pointer;width:120px">
-              <button id="btn-pdf-fecha" style="padding:3px 8px;background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.3);border-radius:6px;color:var(--acc);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font)">↓ PDF</button>
+              <button id="btn-pdf-fecha" style="padding:3px 8px;background:rgba(233,69,96,0.15);border:1px solid rgba(233,69,96,0.3);border-radius:6px;color:var(--acc);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">↓ PDF</button>
             </div>
           </div>
         </div>
@@ -245,10 +262,10 @@
           <div id="hist-prod-total" style="display:none;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--acc);white-space:nowrap"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
-          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--text)" id="h-total">$0</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Total General</div></div>
-          <div style="background:var(--bg3);border:1px solid rgba(0,208,132,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--green)" id="h-efectivo">$0</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">💵 Efectivo</div></div>
-          <div style="background:var(--bg3);border:1px solid rgba(74,158,255,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--blue)" id="h-nequi">$0</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">📱 Nequi</div></div>
-          <div style="background:var(--bg3);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--amber)" id="h-otros">$0</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">➕ Otros</div></div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--text)" id="h-total">$0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Total General</div></div>
+          <div style="background:var(--bg3);border:1px solid rgba(0,208,132,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--green)" id="h-efectivo">$0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">💵 Efectivo</div></div>
+          <div style="background:var(--bg3);border:1px solid rgba(74,158,255,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--blue)" id="h-nequi">$0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">📱 Nequi</div></div>
+          <div style="background:var(--bg3);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--amber)" id="h-otros">$0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">➕ Otros</div></div>
         </div>
       </div>
       <div class="hist-wrap" id="hist-wrap"></div>
@@ -270,22 +287,22 @@
     </div>
     <div class="pay-section">
       <div class="pay-row">
-        <div class="pay-opt sel" id="pay-efectivo">💵 Efectivo <span style="opacity:0.5;font-size:10px">(1)</span></div>
-        <div class="pay-opt" id="pay-nequi">📱 Nequi <span style="opacity:0.5;font-size:10px">(2)</span></div>
-        <div class="pay-opt" id="pay-otros">➕ Otros <span style="opacity:0.5;font-size:10px">(3)</span></div>
-        <div class="pay-opt" id="pay-dividido">🔀 Dividir <span style="opacity:0.5;font-size:10px">(4)</span></div>
+        <div class="pay-opt sel" id="pay-efectivo">💵 Efectivo <span style="opacity:0.5;font-size:11px">(1)</span></div>
+        <div class="pay-opt" id="pay-nequi">📱 Nequi <span style="opacity:0.5;font-size:11px">(2)</span></div>
+        <div class="pay-opt" id="pay-otros">➕ Otros <span style="opacity:0.5;font-size:11px">(3)</span></div>
+        <div class="pay-opt" id="pay-dividido">🔀 Dividir <span style="opacity:0.5;font-size:11px">(4)</span></div>
       </div>
       <div id="efectivo-panel" style="display:block;margin-bottom:10px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px">Monto recibido ($)</div>
-        <input id="monto-recibido" class="search-input" type="number" placeholder="Déjalo vacío para pago exacto" style="font-size:13px;font-family:var(--mono)">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:5px">Monto recibido ($)</div>
+        <input id="monto-recibido" class="search-input" type="number" placeholder="Vacío = pago exacto" style="font-size:13px;font-family:var(--mono)">
         <div id="vuelto-display" style="font-family:var(--mono);font-size:13px;font-weight:600;margin-top:6px;text-align:right"></div>
       </div>
       <div id="otros-panel" style="display:none;margin-bottom:10px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:5px">Nota (opcional)</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:5px">Nota (opcional)</div>
         <input id="otros-desc" class="search-input" placeholder="Ej: Fiado, cortesía, cambio por producto..." style="font-size:12px">
       </div>
       <div id="dividido-panel" style="display:none;margin-bottom:10px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Dividir el pago (debe sumar el total)</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Dividir el pago (debe sumar el total)</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:11px;color:var(--text2);width:64px;flex-shrink:0">💵 Efectivo</span>
@@ -304,10 +321,6 @@
       </div>
       <button class="cobrar-btn" id="cobrar-btn" disabled title="Atajo: Ctrl+Enter">Cobrar</button>
       <button class="cancel-btn" id="cancel-btn">Cancelar venta</button>
-      <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="export-btn" id="btn-csv-ticket" style="flex:1">↓ CSV</button>
-        <button class="export-btn" id="btn-pdf-ticket" style="flex:1;background:rgba(233,69,96,0.12);border-color:rgba(233,69,96,0.3);color:var(--acc)">↓ PDF Hoy</button>
-      </div>
     </div>
   </div>
 </div>
@@ -392,12 +405,12 @@
       <input class="form-input" id="rep-token" placeholder="Token del bot (te lo da @BotFather)">
       <input class="form-input" id="rep-chat" placeholder="Chat ID (se detecta solo)" style="margin-top:6px">
       <button class="export-btn" id="btn-rep-detectar" style="width:100%;margin-top:6px">🔍 Detectar chat y enviar prueba</button>
-      <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Se configura una sola vez. Antes de detectar, escríbele cualquier mensaje a tu bot en Telegram.</p>
+      <p style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">Se configura una sola vez. Antes de detectar, escríbele cualquier mensaje a tu bot en Telegram.</p>
     </div>
 
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
       <div class="atajo-sec" style="margin-top:0">💰 Pago por unidad vendida</div>
-      <p style="font-size:10px;color:var(--text3);margin:4px 0 8px;line-height:1.5">Cuánto se paga por cada unidad vendida. Vacío = no se paga nada por ese producto.</p>
+      <p style="font-size:11px;color:var(--text3);margin:4px 0 8px;line-height:1.5">Cuánto se paga por cada unidad vendida. Vacío = no se paga nada por ese producto.</p>
       <div id="pagos-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
     </div>
 
@@ -413,7 +426,7 @@
     <h2 style="margin-bottom:6px">Bienvenido a Nirvana</h2>
     <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">Ingresa o modifica la base de caja.<br>Este valor aparecerá separado en tus estadísticas.</p>
     <div style="text-align:left;margin-bottom:6px">
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Monto base ($)</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Monto base ($)</div>
       <input id="base-input" class="form-input" type="number" placeholder="0" style="font-size:18px;font-family:var(--mono);text-align:center;padding:12px">
     </div>
     <div class="modal-btns" style="margin-top:16px">
@@ -433,7 +446,7 @@
       ⚠️ Esta venta tenía el pago dividido entre varios métodos. Si la guardas, quedará con un solo método (el que elijas abajo).
     </p>
     <div style="margin-bottom:14px">
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Método de pago</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Método de pago</div>
       <div style="display:flex;gap:6px">
         <div class="pay-opt" id="ev-pay-efectivo">💵 Efectivo</div>
         <div class="pay-opt" id="ev-pay-nequi">📱 Nequi</div>
@@ -441,7 +454,7 @@
       </div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">Productos / items</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Productos / items</div>
       <div id="ev-items-list" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto"></div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -469,16 +482,16 @@
 
     <div style="overflow-y:auto;flex:1;min-height:0;padding-right:4px">
       <div id="day-panel-inicio">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Ajustar stock de productos</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Ajustar stock de productos</div>
         <div id="day-stock-list" style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
       </div>
       <div id="day-panel-cierre" style="display:none">
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Resumen del día</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Resumen del día</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="cierre-resumen"></div>
         </div>
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Stock actual al cierre</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Stock actual al cierre</div>
           <div id="cierre-stock-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
         </div>
       </div>
@@ -819,7 +832,7 @@ function renderGrid() {
     const matchCat = activeCat === 'Todos' || p.cat === activeCat;
     const matchQ   = p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
     return matchCat && matchQ;
-  });
+  }).sort((a, b) => (a.stock <= 0) - (b.stock <= 0));  // estable: conserva el orden dentro de cada grupo
   el('prod-grid').innerHTML = '';
   filtered.forEach(p => {
     const out = p.stock <= 0;
@@ -829,7 +842,6 @@ function renderGrid() {
     card.dataset.id = p.id;
     card.innerHTML =
       (low ? '<span class="badge badge-low">Bajo</span>' : '') +
-      (out ? '<span class="badge badge-out">Agotado</span>' : '') +
       '<span class="prod-icon">' + esc(p.icon||'📦') + '</span>' +
       '<div class="prod-name">' + esc(p.name) + '</div>' +
       '<div class="prod-price">' + fmt(p.price) + '</div>' +
@@ -920,7 +932,7 @@ function renderQueueTabs() {
     if (colas.length > 1) {
       const x = document.createElement('span');
       x.textContent = ' ×';
-      x.style.cssText = 'opacity:0.6;margin-left:2px;font-size:10px';
+      x.style.cssText = 'opacity:0.6;margin-left:2px;font-size:11px';
       x.addEventListener('click', (e) => { e.stopPropagation(); closeCola(c.id); });
       tab.appendChild(x);
     }
@@ -1549,13 +1561,13 @@ function renderHistorial() {
       ).join('');
       card.innerHTML =
         '<div class="hist-card-top">' +
-          '<div><div class="hist-time">' + esc(v.hora) + ' <span style="opacity:.5;font-size:10px">' + esc(v.id) + '</span></div></div>' +
+          '<div><div class="hist-time">' + esc(v.hora) + ' <span style="opacity:.5;font-size:11px">' + esc(v.id) + '</span></div></div>' +
           '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
             '<div class="hist-total">' + fmt(v.total) + '</div>' +
             '<div style="display:flex;align-items:center;gap:6px">' +
               '<span class="hist-method">' + esc(v.metodo) + '</span>' +
-              '<button class="action-btn btn-edit" data-id="' + esc(v.id) + '" style="font-size:10px;padding:3px 8px">✏️ Editar</button>' +
-              '<button class="action-btn btn-del"  data-id="' + esc(v.id) + '" style="font-size:10px;padding:3px 8px">🗑️ Borrar</button>' +
+              '<button class="action-btn btn-edit" data-id="' + esc(v.id) + '" style="font-size:11px;padding:3px 8px">✏️ Editar</button>' +
+              '<button class="action-btn btn-del"  data-id="' + esc(v.id) + '" style="font-size:11px;padding:3px 8px">🗑️ Borrar</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -1672,7 +1684,6 @@ function exportExcel() {
   a.click();
 }
 el('btn-export-csv').addEventListener('click', exportExcel);
-el('btn-csv-ticket').addEventListener('click', exportExcel);
 
 // ═══════════════════════════════════════════════════════
 // EXPORTAR PDF (solo ventas de hoy)
@@ -1708,7 +1719,7 @@ function exportPDF(fechaTarget) {
     '<tr style="border-bottom:1px solid #eee">' +
       '<td style="padding:8px 10px;font-size:11px;color:#444">' + esc(v.hora) + '</td>' +
       '<td style="padding:8px 10px;font-size:11px;color:#333">' + v.items.map(it => esc(it.icon||'📦')+' '+it.qty+'× '+esc(it.name)).join('<br>') + '</td>' +
-      '<td style="padding:8px 10px;text-align:center"><span style="background:' + (methodBg[v.metodo]||'#f5f5f5') + ';color:' + (methodColor[v.metodo]||'#888') + ';padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">' + esc(v.metodo) + '</span></td>' +
+      '<td style="padding:8px 10px;text-align:center"><span style="background:' + (methodBg[v.metodo]||'#f5f5f5') + ';color:' + (methodColor[v.metodo]||'#888') + ';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">' + esc(v.metodo) + '</span></td>' +
       '<td style="padding:8px 10px;font-family:monospace;font-size:12px;font-weight:700;color:#e94560;text-align:right">' + fmt(v.total) + '</td>' +
     '</tr>'
   ).join('');
@@ -1732,19 +1743,19 @@ function exportPDF(fechaTarget) {
 .page{max-width:900px;margin:0 auto;background:#fff;}
 .header{background:#1a1a2e;color:#fff;padding:28px 36px;display:flex;justify-content:space-between;align-items:flex-end;}
 .header-logo{font-size:22px;font-weight:700;letter-spacing:1px;}.header-logo span{color:#e94560;}
-.header-sub{font-size:11px;color:#8890a8;margin-top:4px;text-transform:uppercase;letter-spacing:1px;}
+.header-sub{font-size:11px;color:#8890a8;margin-top:4px;}
 .header-date{text-align:right;font-size:12px;color:#8890a8;}.header-date strong{display:block;font-size:14px;color:#fff;margin-bottom:2px;}
 .kpi-strip{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;border-bottom:2px solid #e94560;}
 .kpi{padding:16px 20px;border-right:1px solid #eee;}.kpi:last-child{border-right:none;}
 .kpi-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:#1a1a2e;}
 .kpi-val.acc{color:#e94560;}.kpi-val.green{color:#27ae60;}.kpi-val.blue{color:#4a9eff;}.kpi-val.amber{color:#ffb830;}
-.kpi-lbl{font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.kpi-lbl{font-size:11px;color:#aaa;margin-top:3px;}
 .section{padding:28px 36px;}.section+.section{border-top:1px solid #eee;}
-.section-title{font-size:13px;font-weight:700;color:#1a1a2e;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-title::after{content:'';flex:1;height:1px;background:#eee;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
-thead th{background:#f4f5f7;color:#888;font-size:9px;text-transform:uppercase;letter-spacing:0.8px;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #eee;}
-.footer{background:#1a1a2e;color:#8890a8;padding:14px 36px;font-size:10px;display:flex;justify-content:space-between;}
+thead th{background:#f4f5f7;color:#888;font-size:11px;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #eee;}
+.footer{background:#1a1a2e;color:#8890a8;padding:14px 36px;font-size:11px;display:flex;justify-content:space-between;}
 .footer strong{color:#fff;}
 .no-print{display:none;}
 @media print{body{background:#fff;}.no-print{display:none!important;}}
@@ -1760,7 +1771,7 @@ thead th{background:#f4f5f7;color:#888;font-size:9px;text-transform:uppercase;le
 <div class="section"><div class="section-title">Productos vendidos</div>
 <table><thead><tr><th style="width:36px"></th><th>Producto</th><th>Categoría</th><th style="text-align:right">Precio unit.</th><th style="text-align:center">Stock inicial → final</th><th style="text-align:center">Vendidas</th><th style="text-align:right">Total recaudado</th></tr></thead>
 <tbody>${prodRows}</tbody>
-<tfoot><tr style="border-top:2px solid #1a1a2e"><td colspan="5" style="padding:10px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase">Total</td><td style="padding:10px;font-family:monospace;font-weight:700;font-size:13px;text-align:center">${prodList.reduce((a,p)=>a+p.qty,0)} uds</td><td style="padding:10px;font-family:monospace;font-weight:700;font-size:13px;color:#e94560;text-align:right">${fmt(totalGen)}</td></tr></tfoot>
+<tfoot><tr style="border-top:2px solid #1a1a2e"><td colspan="5" style="padding:10px;font-size:11px;font-weight:700;color:#888">Total</td><td style="padding:10px;font-family:monospace;font-weight:700;font-size:13px;text-align:center">${prodList.reduce((a,p)=>a+p.qty,0)} uds</td><td style="padding:10px;font-family:monospace;font-weight:700;font-size:13px;color:#e94560;text-align:right">${fmt(totalGen)}</td></tr></tfoot>
 </table></div>
 <div class="section"><div class="section-title">Detalle de ventas</div>
 <table><thead><tr><th>Hora</th><th>Productos</th><th style="text-align:center">Método</th><th style="text-align:right">Total</th></tr></thead>
@@ -1977,13 +1988,13 @@ function renderDayStockList() {
     row.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px';
     row.innerHTML =
       '<span style="font-size:20px;flex-shrink:0">' + esc(p.icon||'📦') + '</span>' +
-      '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.name) + '</div><div style="font-size:10px;color:var(--text3)">' + esc(p.cat) + ' · ' + fmt(p.price) + '</div></div>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.name) + '</div><div style="font-size:11px;color:var(--text3)">' + esc(p.cat) + ' · ' + fmt(p.price) + '</div></div>' +
       '<div style="display:flex;align-items:center;gap:6px">' +
         '<button class="qty-btn" data-id="' + esc(p.id) + '" data-d="-1">−</button>' +
         '<input type="number" id="ds-' + esc(p.id) + '" value="' + p.stock + '" min="0" style="width:56px;text-align:center;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:14px;font-weight:600;padding:4px 0;outline:none">' +
         '<button class="qty-btn" data-id="' + esc(p.id) + '" data-d="1">+</button>' +
       '</div>' +
-      '<div style="font-size:10px;color:var(--text3);min-width:40px;text-align:right">stock</div>';
+      '<div style="font-size:11px;color:var(--text3);min-width:40px;text-align:right">stock</div>';
     row.querySelectorAll('.qty-btn').forEach(btn => btn.addEventListener('click', () => {
       const input = el('ds-' + btn.dataset.id);
       input.value = Math.max(0, (parseInt(input.value)||0) + parseInt(btn.dataset.d));
@@ -2008,11 +2019,11 @@ function renderCierrePanel() {
   const totNeq = ventasHoy.reduce((a,v)=>a+montoPorMetodo(v,'Nequi'),0);
 
   el('cierre-resumen').innerHTML =
-    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--acc)">' + fmt(totGen) + '</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Total del día</div></div>' +
-    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)">' + ventasHoy.length + '</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">Transacciones</div></div>' +
-    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--green)">' + fmt(totEf) + '</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">💵 Efectivo</div></div>' +
-    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--blue)">' + fmt(totNeq) + '</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">📱 Nequi</div></div>' +
-    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center;grid-column:span 2"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--amber)">' + fmt((stats.base||0)+totEf) + '</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">💰 Efectivo total en caja (base + ventas)</div></div>';
+    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--acc)">' + fmt(totGen) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Total del día</div></div>' +
+    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)">' + ventasHoy.length + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Transacciones</div></div>' +
+    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--green)">' + fmt(totEf) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px">💵 Efectivo</div></div>' +
+    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--blue)">' + fmt(totNeq) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px">📱 Nequi</div></div>' +
+    '<div style="background:var(--bg4);border-radius:8px;padding:10px;text-align:center;grid-column:span 2"><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--amber)">' + fmt((stats.base||0)+totEf) + '</div><div style="font-size:11px;color:var(--text3);margin-top:2px">💰 Efectivo total en caja (base + ventas)</div></div>';
 
   el('cierre-stock-list').innerHTML = '';
   productos.forEach(p => {
@@ -2266,7 +2277,6 @@ el('btn-pdf-fecha').addEventListener('click', () => {
 });
 // PDF hoy
 el('btn-export-pdf').addEventListener('click', () => exportPDF());
-el('btn-pdf-ticket').addEventListener('click', () => exportPDF());
 // Poner fecha de hoy por defecto en el picker
 const todayISO = isoLocal(new Date());
 el('pdf-fecha-picker').value = todayISO;

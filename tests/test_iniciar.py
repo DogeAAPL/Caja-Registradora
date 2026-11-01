@@ -85,6 +85,17 @@ class ServidorTest(unittest.TestCase):
         self.assertTrue(cuerpo.startswith(b"%PDF"))
 
 
+class UnSoloServidorTest(unittest.TestCase):
+    def test_segundo_servidor_en_el_mismo_puerto_falla(self):
+        # El primero como lo abre http.server por defecto (con SO_REUSEADDR)
+        primero = HTTPServer(("127.0.0.1", 0), iniciar.Handler)
+        try:
+            with self.assertRaises(OSError):
+                iniciar.Servidor(("127.0.0.1", primero.server_port), iniciar.Handler)
+        finally:
+            primero.server_close()
+
+
 class HtmlValidoTest(unittest.TestCase):
     def test_solo_acepta_la_pagina_de_la_caja(self):
         caja = (Path(__file__).resolve().parent.parent / "caja.html").read_bytes()

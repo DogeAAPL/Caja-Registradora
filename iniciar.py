@@ -643,9 +643,17 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, {"ok": True})
 
 
+class Servidor(HTTPServer):
+    # HTTPServer activa SO_REUSEADDR, y en Windows eso deja que un segundo
+    # programa escuche el MISMO puerto: dos servidores atendiendo a la misma
+    # caja, cada uno con sus propias sesiones. Sin él, el segundo falla al
+    # arrancar y se sabe que ya hay una caja abierta.
+    allow_reuse_address = False
+
+
 def try_start_server():
     try:
-        server = HTTPServer(("127.0.0.1", PORT), Handler)
+        server = Servidor(("127.0.0.1", PORT), Handler)
     except OSError:
         return None
     threading.Thread(target=server.serve_forever, daemon=True).start()
