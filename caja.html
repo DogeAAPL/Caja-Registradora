@@ -189,6 +189,7 @@
     <div style="display:flex;gap:6px;margin-left:12px">
       <button class="day-btn day-btn-open" id="btn-inicio-dia">🌅 Inicio día</button>
       <button class="day-btn day-btn-close" id="btn-cierre-dia">🌙 Cierre día</button>
+      <button class="day-btn" id="btn-config" title="Configuración">⚙️</button>
     </div>
   </div>
 
@@ -379,6 +380,36 @@
   </div>
 </div>
 
+<!-- CONFIGURACIÓN -->
+<div class="modal-bg" id="config-modal" style="display:none">
+  <div class="modal" style="max-width:460px;width:95vw;max-height:90vh;overflow-y:auto">
+    <h2 style="margin-bottom:14px">⚙️ Configuración</h2>
+
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div class="atajo-sec" style="margin-top:0">📨 Resumen por Telegram al exportar el PDF</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0 8px;cursor:pointer">
+        <input type="checkbox" id="rep-activo"> Enviar el resumen cada vez que se exporta el PDF
+      </label>
+      <input class="form-input" id="rep-token" placeholder="Token del bot (te lo da @BotFather)">
+      <input class="form-input" id="rep-chat" placeholder="Chat ID (se detecta solo)" style="margin-top:6px">
+      <button class="export-btn" id="btn-rep-detectar" style="width:100%;margin-top:6px">🔍 Detectar chat y enviar prueba</button>
+      <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Se configura una sola vez. Antes de detectar, escríbele cualquier mensaje a tu bot en Telegram.</p>
+    </div>
+
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div class="atajo-sec" style="margin-top:0">💰 Pago por unidad vendida</div>
+      <p style="font-size:10px;color:var(--text3);margin:4px 0 8px;line-height:1.5">Cuánto se paga por cada unidad vendida. Vacío = no se paga nada por ese producto.</p>
+      <div id="pagos-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="export-btn" id="btn-config-atajos" style="flex:1">⌨️ Atajos de teclado</button>
+      <button class="export-btn" id="btn-config-base" style="flex:1">💰 Base de caja</button>
+    </div>
+    <button class="modal-cancel" id="btn-close-config" style="width:100%;margin-top:14px">Cerrar</button>
+  </div>
+</div>
+
 <!-- BASE MODAL -->
 <div class="modal-bg" id="base-modal" style="display:none">
   <div class="modal" style="text-align:center;max-width:360px">
@@ -490,16 +521,6 @@
           <button class="export-btn" id="btn-enviar-whatsapp" style="width:100%;background:rgba(0,208,132,0.12);border-color:rgba(0,208,132,0.3);color:var(--green)">📲 Abrir PDF y WhatsApp</button>
           <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Se abre el reporte (para guardarlo como PDF) y WhatsApp con ese número. Adjunta el PDF ahí y envíalo.</p>
         </div>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">💰 Pago por unidad vendida</div>
-          <div id="pagos-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
-          <details style="margin-top:8px">
-            <summary style="font-size:10px;color:var(--text3);cursor:pointer">Reporte automático (Telegram)</summary>
-            <input class="form-input" id="rep-token" placeholder="Token del bot (te lo da @BotFather)" style="margin-top:8px">
-            <input class="form-input" id="rep-chat" placeholder="Chat ID (se detecta solo)" style="margin-top:6px">
-            <button class="export-btn" id="btn-rep-detectar" style="width:100%;margin-top:6px">🔍 Detectar chat y enviar prueba</button>
-          </details>
-        </div>
       </div>
     </div>
 
@@ -565,6 +586,7 @@ const ATAJOS = [
   {id:'irProductos',  nombre:'Ir a Productos',          def:'Alt+2',          enInputs:true,  run: () => showTab('productos')},
   {id:'irHistorial',  nombre:'Ir a Historial',          def:'Alt+3',          enInputs:true,  run: () => showTab('historial')},
   {id:'ayuda',        nombre:'Ver / cambiar atajos',    def:'?',              enInputs:false, run: () => abrirAtajos()},
+  {id:'config',       nombre:'Abrir configuración',     def:'Alt+C',          enInputs:true,  run: () => abrirConfig()},
 ];
 // Teclas que ya tienen un uso fijo y no se pueden asignar sin Ctrl/Alt
 const TECLAS_RESERVADAS = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter','Backspace','Delete',
@@ -2050,7 +2072,6 @@ function renderDayTab() {
   el('day-panel-inicio').style.display = isInicio ? 'block' : 'none';
   el('day-panel-cierre').style.display = isInicio ? 'none'  : 'block';
   el('btn-save-day').style.display     = isInicio ? ''      : 'none';
-  if (!isInicio) renderPagos();
 
   // Estilo tabs
   el('day-tab-inicio').style.cssText = isInicio
@@ -2180,14 +2201,23 @@ function renderPagos() {
     list.appendChild(row);
   });
   const rep = config.reporte || {};
-  el('rep-token').value = rep.token  || '';
-  el('rep-chat').value  = rep.chatId || '';
+  el('rep-token').value    = rep.token  || '';
+  el('rep-chat').value     = rep.chatId || '';
+  el('rep-activo').checked = rep.activo !== false;
 }
 function guardarReporte() {
-  config.reporte = {token: el('rep-token').value.trim(), chatId: el('rep-chat').value.trim()};
+  config.reporte = {token: el('rep-token').value.trim(), chatId: el('rep-chat').value.trim(),
+                    activo: el('rep-activo').checked};
   saveConfig();
 }
-['rep-token', 'rep-chat'].forEach(id => el(id).addEventListener('change', guardarReporte));
+['rep-token', 'rep-chat', 'rep-activo'].forEach(id => el(id).addEventListener('change', guardarReporte));
+
+function abrirConfig()  { renderPagos(); el('config-modal').style.display = 'flex'; }
+function cerrarConfig() { el('config-modal').style.display = 'none'; }
+el('btn-config').addEventListener('click', abrirConfig);
+el('btn-close-config').addEventListener('click', cerrarConfig);
+el('btn-config-atajos').addEventListener('click', () => { cerrarConfig(); abrirAtajos(); });
+el('btn-config-base').addEventListener('click',   () => { cerrarConfig(); openBaseModal(); });
 
 // Llamada a la API de bots de Telegram (formulario simple: sin preflight CORS)
 async function telegram(token, metodo, params) {
@@ -2218,7 +2248,7 @@ el('btn-rep-detectar').addEventListener('click', async () => {
 // configurado, no pasa nada (no interrumpe el cierre).
 function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
   const rep = config.reporte || {};
-  if (!rep.token || !rep.chatId) return;
+  if (!rep.token || !rep.chatId || rep.activo === false) return;
   const pagos = resumenPagos(ventasDia, pagosProducto());
   const texto = [
     '📊 Cierre Nirvana ' + fecha + ' (' + ventasDia.length + ' ventas)',
@@ -2246,7 +2276,7 @@ el('day-tab-cierre').addEventListener('click', () => { dayTab='cierre'; renderDa
 // TECLADO
 // ═══════════════════════════════════════════════════════
 function anyModalOpen() {
-  return ['base-modal','prod-modal','edit-venta-modal','day-modal','success-modal','auto-import-modal','manual-import-modal','shortcuts-modal']
+  return ['base-modal','prod-modal','edit-venta-modal','day-modal','success-modal','auto-import-modal','manual-import-modal','shortcuts-modal','config-modal']
     .some(id => el(id) && el(id).style.display && el(id).style.display !== 'none');
 }
 
@@ -2335,6 +2365,7 @@ document.addEventListener('keydown', e => {
     el('auto-import-modal').style.display = 'none';
     el('manual-import-modal').style.display = 'none';
     cerrarAtajos();
+    cerrarConfig();
     return;
   }
   if (e.key === 'Enter' && el('base-modal').style.display === 'flex') setBase();
