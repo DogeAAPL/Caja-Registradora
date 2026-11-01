@@ -60,7 +60,7 @@ CajaNirvana/
     ├── productos.json      ← tu catálogo
     ├── ventas.json          ← historial completo de ventas
     ├── stats.json           ← totales del día / base de caja
-    ├── config.json          ← número de WhatsApp guardado, etc.
+    ├── config.json          ← atajos, pagos por producto y bot de Telegram
     ├── actualizacion.json   ← última revisión de GitHub (lo maneja el programa)
     └── respaldos/
         └── AAAA-MM-DD/      ← copia automática de todo lo anterior, una por día
@@ -150,11 +150,9 @@ Para desactivar la actualización, vuelve a poner `GITHUB_USER =
 - **Historial**: consulta todas las ventas registradas, edítalas o bórralas.
 - **Inicio / Cierre de día**: define la base de caja al empezar el día y
   revisa el resumen al cerrar.
-  - **📲 Enviar cierre por WhatsApp**: guarda el número una vez (con
-    indicativo de país, ej. `573001234567`) y con un clic se abre el reporte
-    en PDF (para guardarlo) y una conversación de WhatsApp con el resumen del
-    día ya escrito — solo te falta arrastrar el PDF a la conversación y
-    darle enviar.
+- **📨 Reporte por Telegram** (⚙️ Configuración, se configura una vez): cada
+  vez que se exporta el PDF del día, llega a Telegram el PDF (`d-m-aaaa.pdf`)
+  con el resumen, lo que se paga por producto y lo que queda en caja.
 - **Exportar**: descarga un CSV con ventas (incluye número de venta y nota),
   inventario y resumen diario.
 

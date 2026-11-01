@@ -43,6 +43,7 @@ import json
 import shutil
 import subprocess
 import webbrowser
+import tempfile
 import threading
 import time
 import hashlib
@@ -569,12 +570,12 @@ class Handler(BaseHTTPRequestHandler):
             self._json(403, {"error": "origen no permitido"})
             return
         path = self.path.split("?", 1)[0]
-        if not path.startswith("/api/data/"):
+        if not path.startswith("/api/data/") and path != "/api/pdf":
             self.send_response(404)
             self.end_headers()
             return
-        key = path.split("/api/data/", 1)[1]
-        if key not in ALLOWED_KEYS:
+        key = path.split("/api/data/", 1)[-1]
+        if path != "/api/pdf" and key not in ALLOWED_KEYS:
             self._json(404, {"error": "clave no válida"})
             return
 
@@ -582,6 +583,24 @@ class Handler(BaseHTTPRequestHandler):
         if not token or token != _session["activa"]:
             self._json(409, {"error": "sesion",
                              "detalle": "La caja se abrió en otra ventana. Esta ventana ya no puede guardar."})
+            return
+
+        # Reporte del día en PDF (para enviarlo por Telegram): {"html": "..."}
+        if path == "/api/pdf":
+            try:
+                length = int(self.headers.get("Content-Length", 0) or 0)
+                if length > 10_000_000:
+                    raise ValueError("reporte demasiado grande")
+                pdf = html_a_pdf(json.loads(self.rfile.read(length))["html"])
+            except Exception as e:
+                self._json(500, {"error": f"No se pudo generar el PDF: {e}"})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "application/pdf")
+            self.send_header("Content-Length", str(len(pdf)))
+            self._nocache()
+            self.end_headers()
+            self.wfile.write(pdf)
             return
 
         try:
@@ -633,12 +652,10 @@ def try_start_server():
     return server
 
 
-def open_browser() -> bool:
-    time.sleep(0.4)
-    url = f"http://127.0.0.1:{PORT}/caja.html"
-
+def _navegadores() -> list:
+    """Rutas posibles de Chrome/Edge/Brave/Chromium en este sistema."""
     if sys.platform == "win32":
-        candidates = [
+        return [
             r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
             os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
@@ -646,17 +663,45 @@ def open_browser() -> bool:
             r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
             os.path.expandvars(r"%PROGRAMFILES(X86)%\Microsoft\Edge\Application\msedge.exe"),
         ]
-    else:  # Linux
-        candidates = [
-            "/usr/bin/google-chrome",
-            "/usr/bin/google-chrome-stable",
-            "/usr/bin/chromium-browser",
-            "/usr/bin/chromium",
-            "/usr/bin/brave-browser",
-            "/snap/bin/chromium",
-        ]
+    return [  # Linux
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/usr/bin/brave-browser",
+        "/snap/bin/chromium",
+    ]
 
-    for path in candidates:
+
+def html_a_pdf(html: str) -> bytes:
+    """Convierte el reporte del día a PDF con Edge/Chrome sin ventana
+    (--headless). Usa un perfil temporal propio para no chocar con la
+    ventana de la caja que ya está abierta. Edge va primero: viene con
+    Windows y Brave se queda colgado en este modo; si uno falla, prueba
+    el siguiente."""
+    flags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as d:
+        src, out = Path(d) / "reporte.html", Path(d) / "reporte.pdf"
+        src.write_text(html, encoding="utf-8")
+        for exe in sorted(_navegadores(), key=lambda p: "msedge" not in p):
+            if not os.path.exists(exe):
+                continue
+            try:
+                subprocess.run([exe, "--headless", "--disable-gpu", "--no-pdf-header-footer",
+                                f"--user-data-dir={Path(d) / 'perfil'}", f"--print-to-pdf={out}", src.as_uri()],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, creationflags=flags)
+            except subprocess.TimeoutExpired:
+                continue
+            if out.exists():
+                return out.read_bytes()
+    raise RuntimeError("no se pudo generar el PDF con Edge ni Chrome")
+
+
+def open_browser() -> bool:
+    time.sleep(0.4)
+    url = f"http://127.0.0.1:{PORT}/caja.html"
+
+    for path in _navegadores():
         if os.path.exists(path):
             try:
                 subprocess.Popen([path, f"--app={url}", "--window-size=1280,800"])

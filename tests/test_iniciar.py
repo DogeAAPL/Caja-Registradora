@@ -70,6 +70,21 @@ class ServidorTest(unittest.TestCase):
         self.assertEqual((iniciar.DATA_DIR / "ventas.json").read_text(encoding="utf-8"), "{roto")
 
 
+    def test_pdf_solo_para_la_caja(self):
+        self.assertEqual(self.pedir("POST", "/api/pdf", **{"X-Caja-Sesion": "otra"})[0], 409)
+
+    def test_pdf_del_reporte(self):
+        c = http.client.HTTPConnection("127.0.0.1", self.server.server_port, timeout=90)
+        c.request("POST", "/api/pdf", body=json.dumps({"html": "<html><body><h1>Cierre</h1></body></html>"}),
+                  headers={"Host": HOST, "Origin": ORIGIN, "Content-Type": "application/json", "X-Caja-Sesion": "t"})
+        r = c.getresponse()
+        cuerpo = r.read()
+        if r.status == 500 and not any(Path(p).exists() for p in iniciar._navegadores()):
+            self.skipTest("no hay Edge ni Chrome en este computador")
+        self.assertEqual(r.status, 200, cuerpo[:200])
+        self.assertTrue(cuerpo.startswith(b"%PDF"))
+
+
 class HtmlValidoTest(unittest.TestCase):
     def test_solo_acepta_la_pagina_de_la_caja(self):
         caja = (Path(__file__).resolve().parent.parent / "caja.html").read_bytes()

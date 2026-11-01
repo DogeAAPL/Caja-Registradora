@@ -481,12 +481,6 @@
           <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Stock actual al cierre</div>
           <div id="cierre-stock-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
         </div>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">📲 Enviar PDF por WhatsApp</div>
-          <input class="form-input" id="wa-numero" placeholder="Número con indicativo, ej: 573001234567" style="margin-bottom:8px">
-          <button class="export-btn" id="btn-enviar-whatsapp" style="width:100%;background:rgba(0,208,132,0.12);border-color:rgba(0,208,132,0.3);color:var(--green)">📲 Abrir PDF y WhatsApp</button>
-          <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Se abre el reporte (para guardarlo como PDF) y WhatsApp con ese número. Adjunta el PDF ahí y envíalo.</p>
-        </div>
       </div>
     </div>
 
@@ -526,7 +520,7 @@ const DEFAULT_PRODS = [
 let productos = JSON.parse(JSON.stringify(DEFAULT_PRODS));
 let ventas    = [];
 let stats     = {total:0,efectivo:0,nequi:0,otros:0,base:0,trans:0,date:'',baseAskedDate:''};
-let config    = {whatsapp:''};
+let config    = {};
 
 // ═══════════════════════════════════════════════════════
 // ATAJOS DE TECLADO PERSONALIZABLES
@@ -1704,7 +1698,6 @@ function exportPDF(fechaTarget) {
   const totalEfectivo = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Efectivo'), 0);
   const totalNequi    = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Nequi'), 0);
   const totalOtros    = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Otros'), 0);
-  enviarReporte(todayStr, ventasHoy, totalGen, totalEfectivo, totalNequi, totalOtros);
   const fechaHoy =new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const horaGen  = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
 
@@ -1778,6 +1771,7 @@ thead th{background:#f4f5f7;color:#888;font-size:9px;text-transform:uppercase;le
 <button onclick="window.print()" style="padding:12px 24px;background:#e94560;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(233,69,96,0.4)">🖨️ Imprimir / Guardar PDF</button>
 </div></body></html>`;
 
+  enviarReporte(todayStr, ventasHoy, totalGen, totalEfectivo, totalNequi, totalOtros, html);
   const win = window.open('', '_blank');
   if (!win) { alert('Permite las ventanas emergentes para generar el PDF.'); return; }
   win.document.write(html);
@@ -2007,7 +2001,6 @@ function saveDayStock() {
 }
 
 function renderCierrePanel() {
-  if (el('wa-numero')) el('wa-numero').value = config.whatsapp || '';
   const todayStr  = new Date().toLocaleDateString('es-CO');
   const ventasHoy = ventas.filter(v => v.fecha === todayStr);
   const totGen = ventasHoy.reduce((a,v)=>a+v.total,0);
@@ -2031,24 +2024,6 @@ function renderCierrePanel() {
     el('cierre-stock-list').appendChild(row);
   });
 }
-
-// ═══════════════════════════════════════════════════════
-// ENVIAR CIERRE POR WHATSAPP
-// ═══════════════════════════════════════════════════════
-function enviarWhatsApp() {
-  const numero = (el('wa-numero').value || '').replace(/\D/g, '');
-  if (!numero) { alert('Ingresa un número de WhatsApp con indicativo de país (ej: 57 para Colombia).'); el('wa-numero').focus(); return; }
-  config.whatsapp = numero;
-  saveConfig();
-
-  exportPDF(); // abre la pestaña con el reporte, listo para "Guardar como PDF"
-  window.open('https://wa.me/' + numero, '_blank');
-}
-el('btn-enviar-whatsapp').addEventListener('click', enviarWhatsApp);
-el('wa-numero').addEventListener('change', () => {
-  config.whatsapp = el('wa-numero').value.replace(/\D/g, '');
-  saveConfig();
-});
 
 // ═══════════════════════════════════════════════════════
 // PAGO POR UNIDAD VENDIDA + REPORTE AUTOMÁTICO POR TELEGRAM
@@ -2114,7 +2089,7 @@ el('btn-config-atajos').addEventListener('click', () => { cerrarConfig(); abrirA
 // Llamada a la API de bots de Telegram (formulario simple: sin preflight CORS)
 async function telegram(token, metodo, params) {
   const r = await fetch('https://api.telegram.org/bot' + token + '/' + metodo,
-                        {method: 'POST', body: new URLSearchParams(params || {}), cache: 'no-store'});
+                        {method: 'POST', body: params instanceof FormData ? params : new URLSearchParams(params || {}), cache: 'no-store'});
   return r.json();
 }
 
@@ -2136,9 +2111,10 @@ el('btn-rep-detectar').addEventListener('click', async () => {
   }
 });
 
-// Se envía en segundo plano al exportar el PDF; si no hay internet o no está
+// Se envía en segundo plano al exportar el PDF: el PDF del día (nombre
+// d-m-aaaa.pdf) con el resumen como texto. Si no hay internet o no está
 // configurado, no pasa nada (no interrumpe el cierre).
-function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
+async function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros, html) {
   const rep = config.reporte || {};
   if (!rep.token || !rep.chatId || rep.activo === false) return;
   const pagos = resumenPagos(ventasDia, pagosProducto());
@@ -2154,7 +2130,20 @@ function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
     'Total del día menos pago: ' + fmt(total - pagos.total),
     'Efectivo menos pago: ' + fmt(efectivo - pagos.total),
   ].join('\n');
-  telegram(rep.token, 'sendMessage', {chat_id: rep.chatId, text: texto}).catch(() => {});
+  try {
+    // El PDF lo genera el programa de la caja (iniciar.py) con Edge/Chrome
+    const r = await fetch('/api/pdf', {method: 'POST', cache: 'no-store', body: JSON.stringify({html}),
+                                       headers: {'Content-Type': 'application/json', 'X-Caja-Sesion': sesion || ''}});
+    if (!r.ok) throw new Error('sin PDF');
+    const datos = new FormData();
+    datos.append('chat_id', rep.chatId);
+    datos.append('caption', texto);  // el resumen cabe en el límite de 1024 caracteres
+    datos.append('document', await r.blob(), fecha.replace(/\//g, '-') + '.pdf');
+    if (!(await telegram(rep.token, 'sendDocument', datos)).ok) throw new Error('Telegram rechazó el PDF');
+  } catch (e) {
+    // Sin PDF (p. ej. un .exe viejo sin /api/pdf): al menos el resumen en texto
+    telegram(rep.token, 'sendMessage', {chat_id: rep.chatId, text: texto}).catch(() => {});
+  }
 }
 
 el('btn-inicio-dia').addEventListener('click', () => openDayModal('inicio'));
@@ -2326,7 +2315,6 @@ async function initApp() {
     if (faltantes.includes('config'))    saveConfig();
     saveStats(); // stats se recalcula/rueda cada día
 
-    if (el('wa-numero')) el('wa-numero').value = config.whatsapp || '';
     actualizarEtiquetasAtajos();
 
     renderQueueTabs();
