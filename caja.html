@@ -490,6 +490,15 @@
           <button class="export-btn" id="btn-enviar-whatsapp" style="width:100%;background:rgba(0,208,132,0.12);border-color:rgba(0,208,132,0.3);color:var(--green)">📲 Abrir PDF y WhatsApp</button>
           <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Se abre el reporte (para guardarlo como PDF) y WhatsApp con ese número. Adjunta el PDF ahí y envíalo.</p>
         </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">💰 Pago por unidad vendida</div>
+          <div id="pagos-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+          <details style="margin-top:8px">
+            <summary style="font-size:10px;color:var(--text3);cursor:pointer">Reporte automático</summary>
+            <input class="form-input" id="rep-telefono" placeholder="Teléfono con indicativo, ej: 573001234567" style="margin-top:8px">
+            <input class="form-input" id="rep-apikey" placeholder="apikey de CallMeBot" style="margin-top:6px">
+          </details>
+        </div>
       </div>
     </div>
 
@@ -1690,7 +1699,8 @@ function exportPDF(fechaTarget) {
   const totalEfectivo = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Efectivo'), 0);
   const totalNequi    = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Nequi'), 0);
   const totalOtros    = ventasHoy.reduce((a,v) => a + montoPorMetodo(v,'Otros'), 0);
-  const fechaHoy = new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  enviarReporte(todayStr, ventasHoy, totalGen, totalEfectivo, totalNequi, totalOtros);
+  const fechaHoy =new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const horaGen  = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
 
   const methodColor = {'Efectivo':'#27ae60','Nequi':'#4a9eff','Otros':'#ffb830','Dividido':'#e94560'};
@@ -2039,6 +2049,7 @@ function renderDayTab() {
   el('day-panel-inicio').style.display = isInicio ? 'block' : 'none';
   el('day-panel-cierre').style.display = isInicio ? 'none'  : 'block';
   el('btn-save-day').style.display     = isInicio ? ''      : 'none';
+  if (!isInicio) renderPagos();
 
   // Estilo tabs
   el('day-tab-inicio').style.cssText = isInicio
@@ -2126,6 +2137,79 @@ el('wa-numero').addEventListener('change', () => {
   config.whatsapp = el('wa-numero').value.replace(/\D/g, '');
   saveConfig();
 });
+
+// ═══════════════════════════════════════════════════════
+// PAGO POR UNIDAD VENDIDA + REPORTE AUTOMÁTICO POR WHATSAPP
+// config.pagosProducto = {idProducto: pesos por unidad}
+// config.reporte = {telefono, apikey} (CallMeBot). Viven solo en datos/config.json.
+// ═══════════════════════════════════════════════════════
+const PAGOS_DEF = {P012: 3000, P017: 200};  // Helado Artesanal, Paleta
+function pagosProducto() { return config.pagosProducto || PAGOS_DEF; }
+
+function resumenPagos(ventasDia, pagos) {
+  const porProd = {};
+  ventasDia.forEach(v => v.items.forEach(it => {
+    if (!pagos[it.id]) return;
+    if (!porProd[it.id]) porProd[it.id] = {name: it.name, qty: 0, pago: 0};
+    porProd[it.id].qty  += it.qty;
+    porProd[it.id].pago += it.qty * pagos[it.id];
+  }));
+  const lineas = Object.values(porProd);
+  return {lineas, total: lineas.reduce((a, l) => a + l.pago, 0)};
+}
+
+function renderPagos() {
+  const pagos = pagosProducto();
+  const list = el('pagos-list');
+  list.innerHTML = '';
+  productos.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'atajo-row';
+    row.innerHTML = '<span style="font-size:12px">' + esc(p.icon || '📦') + ' ' + esc(p.name) + '</span>' +
+      '<input class="form-input" type="number" min="0" step="100" placeholder="0" style="width:100px;padding:4px 8px">';
+    const inp = row.querySelector('input');
+    inp.value = pagos[p.id] || '';
+    inp.addEventListener('change', () => {
+      const nuevos = Object.assign({}, pagosProducto());
+      const monto = Math.max(0, Number(inp.value) || 0);
+      if (monto) nuevos[p.id] = monto; else delete nuevos[p.id];
+      config.pagosProducto = nuevos;
+      saveConfig();
+    });
+    list.appendChild(row);
+  });
+  const rep = config.reporte || {};
+  el('rep-telefono').value = rep.telefono || '';
+  el('rep-apikey').value   = rep.apikey   || '';
+}
+['rep-telefono', 'rep-apikey'].forEach(id => el(id).addEventListener('change', () => {
+  config.reporte = {telefono: el('rep-telefono').value.replace(/\D/g, ''), apikey: el('rep-apikey').value.trim()};
+  saveConfig();
+}));
+
+// Se envía en segundo plano al exportar el PDF; si no hay internet o no está
+// configurado, no pasa nada (no interrumpe el cierre).
+function enviarReporte(fecha, ventasDia, total, efectivo, nequi, otros) {
+  const rep = config.reporte || {};
+  if (!rep.telefono || !rep.apikey) return;
+  const pagos = resumenPagos(ventasDia, pagosProducto());
+  const texto = [
+    '📊 Cierre Nirvana ' + fecha + ' (' + ventasDia.length + ' ventas)',
+    'Total del día: ' + fmt(total),
+    '💵 Efectivo: ' + fmt(efectivo) + ' · 📱 Nequi: ' + fmt(nequi) + ' · ➕ Otros: ' + fmt(otros),
+    '',
+    '💰 A pagar:',
+    ...(pagos.lineas.length ? pagos.lineas.map(l => '• ' + l.name + ': ' + l.qty + ' × ' + fmt(l.pago / l.qty) + ' = ' + fmt(l.pago)) : ['• Nada']),
+    'Total a pagar: ' + fmt(pagos.total),
+    '',
+    'Total del día menos pago: ' + fmt(total - pagos.total),
+    'Efectivo menos pago: ' + fmt(efectivo - pagos.total),
+  ].join('\n');
+  // no-cors: CallMeBot no responde con CORS; igual recibe el mensaje.
+  fetch('https://api.callmebot.com/whatsapp.php?phone=%2B' + rep.telefono +
+        '&text=' + encodeURIComponent(texto) + '&apikey=' + encodeURIComponent(rep.apikey),
+        {mode: 'no-cors', cache: 'no-store'}).catch(() => {});
+}
 
 el('btn-inicio-dia').addEventListener('click', () => openDayModal('inicio'));
 el('btn-cierre-dia').addEventListener('click', () => openDayModal('cierre'));
