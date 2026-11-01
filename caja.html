@@ -1379,9 +1379,11 @@ function updateCatList() {
 // (nunca se basa en la cantidad de productos), así nunca choca aunque se
 // hayan borrado productos antes.
 function nextProductId() {
+  // También cuenta los productos ya borrados que aparecen en ventas viejas,
+  // para que un producto nuevo nunca herede su historial ni su pago.
   let maxNum = 0;
-  productos.forEach(p => {
-    const m = /^P(\d+)$/.exec(p.id);
+  [...productos, ...ventas.flatMap(v => v.items)].forEach(p => {
+    const m = /^P(\d+)$/.exec(p.id || '');
     if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
   });
   return 'P' + String(maxNum + 1).padStart(3, '0');
@@ -1428,6 +1430,7 @@ function openAddModal() {
   editingId = null;
   el('modal-title').textContent = 'Nuevo Producto';
   el('f-id').value      = nextProductId();
+  el('f-id').readOnly   = false;
   el('f-name').value    = '';
   el('f-cat').value     = '';
   el('f-price').value   = '';
@@ -1444,6 +1447,7 @@ function openEditModal(id) {
   editingId = id;
   el('modal-title').textContent = 'Editar Producto';
   el('f-id').value       = p.id;
+  el('f-id').readOnly    = true;  // cambiarlo dejaría ventas y pagos apuntando a otro producto
   el('f-name').value     = p.name;
   el('f-cat').value      = p.cat;
   el('f-price').value    = p.price;
@@ -1660,9 +1664,10 @@ function exportExcel() {
     byD[v.fecha].otros    += montoPorMetodo(v,'Otros');
   });
   const BOM = '\uFEFF';
-  // Cada celda va entre comillas si trae coma, comillas o salto de línea
-  const cell = x => { const t = String(x == null ? '' : x); return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g,'""') + '"' : t; };
-  const line = r => r.map(cell).join(',');
+  // Excel en español (Colombia) separa las columnas con ";" (no con coma).
+  // Cada celda va entre comillas si trae ; , comillas o salto de línea.
+  const cell = x => { const t = String(x == null ? '' : x); return /[";,\n\r]/.test(t) ? '"' + t.replace(/"/g,'""') + '"' : t; };
+  const line = r => r.map(cell).join(';');
   const csv = BOM +
     '===VENTAS===\n' + [...hV,...rows].map(line).join('\n') +
     '\n\n===INVENTARIO===\n' + [...hP,...productos.map(p=>[p.name,p.cat,p.price,p.stock,p.minStock||5])].map(line).join('\n') +

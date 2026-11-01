@@ -183,33 +183,8 @@ def ensure_installed():
     return Path(__file__).resolve(), first_install
 
 
-def _read_config() -> dict:
-    """Lee datos/config.json completo (puede traer, por ejemplo, el número
-    de WhatsApp guardado desde la app). Nunca lanza excepción."""
-    f = DATA_DIR / "config.json"
-    try:
-        if f.exists():
-            return json.loads(f.read_text(encoding="utf-8"))
-    except Exception:
-        pass
-    return {}
-
-
 # Un solo escritor a la vez sobre datos/ (servidor y revisión de updates)
 _data_lock = threading.Lock()
-
-
-def _write_config(cfg: dict) -> None:
-    """Escritura atómica de config.json, preservando lo que ya había ahí
-    (por ejemplo, el número de WhatsApp que guarda la propia app web)."""
-    try:
-        with _data_lock:
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
-            tmp = DATA_DIR / "config.tmp"
-            tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
-            tmp.replace(DATA_DIR / "config.json")
-    except Exception:
-        pass
 
 
 # ---------------------------------------------------------------------------
